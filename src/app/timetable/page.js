@@ -589,7 +589,10 @@ export default function SchoolTimetableSystem() {
     setLoading(true)
     try {
       const res = await fetch('/api/all-data')
-      if (!res.ok) throw new Error('Failed to load data')
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}))
+        throw new Error(errorData.error || `HTTP ${res.status}: ${res.statusText}`)
+      }
       const data = await res.json()
       
       setSchoolInfo(data.schoolInfo || {})
@@ -624,6 +627,7 @@ export default function SchoolTimetableSystem() {
       })))
     } catch (error) {
       console.error('Error loading data:', error)
+      fireToast('error', `โหลดข้อมูลไม่สำเร็จ: ${error.message}`)
     } finally {
       setLoading(false)
     }
