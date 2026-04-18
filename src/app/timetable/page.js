@@ -11,7 +11,7 @@ import {
   EyeOff, Eye, RotateCcw, Archive,
   ChevronDown, ChevronUp, Settings, Palette,
   ArrowLeft, Building2, GraduationCap, BookOpen,
-  Clock, Grid3X3, Eye, Printer, LogOut,
+  Clock, Grid3X3, Printer, LogOut,
   School, UserCog, BookMarked, PersonStanding,
   LayoutGrid, FileText, ChevronRight, ChevronLeft,
   Save, Trash, Search, Filter, MoreVertical,
