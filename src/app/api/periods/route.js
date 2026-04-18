@@ -20,11 +20,11 @@ export async function POST(request) {
     await query('DELETE FROM timetable_settings')
     
     // Insert new periods
-    for (const p of periods) {
+    for (const p of periods || []) {
       const id = crypto.randomUUID()
       await query(
         'INSERT INTO timetable_settings (id, period_number, start_time, end_time, is_active, label) VALUES (?, ?, ?, ?, ?, ?)',
-        [id, p.periodNumber, p.startTime, p.endTime, p.isActive, p.label]
+        [id, p?.periodNumber ?? null, p?.startTime ?? null, p?.endTime ?? null, p?.isActive ?? true, p?.label ?? null]
       )
     }
     

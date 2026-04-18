@@ -24,7 +24,7 @@ export async function POST(request) {
     
     await query(
       'INSERT INTO academic_years (id, year, semester, start_date, end_date, is_active) VALUES (?, ?, ?, ?, ?, ?)',
-      [id, year, semester, startDate, endDate, isActive]
+      [id, year ?? null, semester ?? 1, startDate ?? null, endDate ?? null, isActive ?? false]
     )
     
     return NextResponse.json({ success: true, id, message: 'เพิ่มปีการศึกษาเรียบร้อย' })
@@ -45,7 +45,7 @@ export async function PUT(request) {
     
     await query(
       'UPDATE academic_years SET year = ?, semester = ?, start_date = ?, end_date = ?, is_active = ? WHERE id = ?',
-      [year, semester, startDate, endDate, isActive, id]
+      [year ?? null, semester ?? 1, startDate ?? null, endDate ?? null, isActive ?? false, id]
     )
     
     return NextResponse.json({ success: true, message: 'แก้ไขปีการศึกษาเรียบร้อย' })

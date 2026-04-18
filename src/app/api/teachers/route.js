@@ -19,7 +19,7 @@ export async function POST(request) {
     
     await query(
       'INSERT INTO teachers (id, prefix, first_name, last_name, department) VALUES (?, ?, ?, ?, ?)',
-      [id, prefix, firstName, lastName, department]
+      [id, prefix ?? null, firstName ?? null, lastName ?? null, department ?? null]
     )
     
     return NextResponse.json({ success: true, id, message: 'เพิ่มครูผู้สอนเรียบร้อย' })
@@ -35,7 +35,7 @@ export async function PUT(request) {
     
     await query(
       'UPDATE teachers SET prefix = ?, first_name = ?, last_name = ?, department = ? WHERE id = ?',
-      [prefix, firstName, lastName, department, id]
+      [prefix ?? null, firstName ?? null, lastName ?? null, department ?? null, id]
     )
     
     return NextResponse.json({ success: true, message: 'แก้ไขข้อมูลครูเรียบร้อย' })

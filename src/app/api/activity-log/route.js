@@ -19,7 +19,7 @@ export async function POST(request) {
     
     await query(
       'INSERT INTO activity_log (id, action, user, detail, ip_address, device) VALUES (?, ?, ?, ?, ?, ?)',
-      [id, action, user, detail, ipAddress, device]
+      [id, action ?? null, user ?? null, detail ?? null, ipAddress ?? null, device ?? null]
     )
     
     return NextResponse.json({ success: true, id })

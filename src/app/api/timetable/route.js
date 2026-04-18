@@ -49,14 +49,14 @@ export async function POST(request) {
     // Check if entry exists
     const existing = await query(
       'SELECT id FROM timetable WHERE day = ? AND period = ? AND classroom = ? AND academic_year_id = ?',
-      [day, period, classroom, academicYearId]
+      [day ?? null, period ?? null, classroom ?? null, academicYearId ?? null]
     )
     
     if (existing.length > 0) {
       // Update existing
       await query(
         'UPDATE timetable SET subject_id = ?, teacher_id = ? WHERE id = ?',
-        [subjectId, teacherId, existing[0].id]
+        [subjectId ?? null, teacherId ?? null, existing[0].id]
       )
       return NextResponse.json({ success: true, message: 'อัพเดตตารางเรียนเรียบร้อย' })
     } else {
@@ -64,7 +64,7 @@ export async function POST(request) {
       const id = crypto.randomUUID()
       await query(
         'INSERT INTO timetable (id, day, period, subject_id, teacher_id, classroom, academic_year_id) VALUES (?, ?, ?, ?, ?, ?, ?)',
-        [id, day, period, subjectId, teacherId, classroom, academicYearId]
+        [id, day ?? null, period ?? null, subjectId ?? null, teacherId ?? null, classroom ?? null, academicYearId ?? null]
       )
       return NextResponse.json({ success: true, id, message: 'บันทึกตารางเรียนเรียบร้อย' })
     }
@@ -81,15 +81,15 @@ export async function PUT(request) {
     // Delete existing entries for this classroom/year
     await query(
       'DELETE FROM timetable WHERE classroom = ? AND academic_year_id = ?',
-      [classroom, academicYearId]
+      [classroom ?? null, academicYearId ?? null]
     )
     
     // Insert new entries
-    for (const entry of entries) {
+    for (const entry of entries || []) {
       const id = crypto.randomUUID()
       await query(
         'INSERT INTO timetable (id, day, period, subject_id, teacher_id, classroom, academic_year_id) VALUES (?, ?, ?, ?, ?, ?, ?)',
-        [id, entry.day, entry.period, entry.subjectId, entry.teacherId, classroom, academicYearId]
+        [id, entry?.day ?? null, entry?.period ?? null, entry?.subjectId ?? null, entry?.teacherId ?? null, classroom ?? null, academicYearId ?? null]
       )
     }
     

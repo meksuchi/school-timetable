@@ -32,7 +32,7 @@ export async function POST(request) {
     
     await query(
       'INSERT INTO subjects (id, code, name, periods_per_week, type, classroom) VALUES (?, ?, ?, ?, ?, ?)',
-      [id, code, name, periodsPerWeek, type, classroom]
+      [id, code ?? null, name ?? null, periodsPerWeek ?? 1, type ?? 'พื้นฐาน', classroom ?? null]
     )
     
     return NextResponse.json({ success: true, id, message: 'เพิ่มรายวิชาเรียบร้อย' })
@@ -48,7 +48,7 @@ export async function PUT(request) {
     
     await query(
       'UPDATE subjects SET code = ?, name = ?, periods_per_week = ?, type = ?, classroom = ? WHERE id = ?',
-      [code, name, periodsPerWeek, type, classroom, id]
+      [code ?? null, name ?? null, periodsPerWeek ?? 1, type ?? 'พื้นฐาน', classroom ?? null, id]
     )
     
     return NextResponse.json({ success: true, message: 'แก้ไขรายวิชาเรียบร้อย' })

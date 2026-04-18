@@ -21,9 +21,10 @@ export async function PUT(request) {
     const data = await request.json()
     
     for (const [key, value] of Object.entries(data)) {
+      const safeValue = value ?? null
       await query(
         'INSERT INTO school_info (`key`, `value`) VALUES (?, ?) ON DUPLICATE KEY UPDATE `value` = ?',
-        [key, value, value]
+        [key, safeValue, safeValue]
       )
     }
     

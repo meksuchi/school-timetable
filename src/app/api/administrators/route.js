@@ -19,7 +19,7 @@ export async function POST(request) {
     
     await query(
       'INSERT INTO administrators (id, title, first_name, last_name, position) VALUES (?, ?, ?, ?, ?)',
-      [id, title, firstName, lastName, position]
+      [id, title ?? null, firstName ?? null, lastName ?? null, position ?? null]
     )
     
     return NextResponse.json({ success: true, id, message: 'เพิ่มผู้บริหารเรียบร้อย' })
@@ -35,7 +35,7 @@ export async function PUT(request) {
     
     await query(
       'UPDATE administrators SET title = ?, first_name = ?, last_name = ?, position = ? WHERE id = ?',
-      [title, firstName, lastName, position, id]
+      [title ?? null, firstName ?? null, lastName ?? null, position ?? null, id]
     )
     
     return NextResponse.json({ success: true, message: 'แก้ไขข้อมูลผู้บริหารเรียบร้อย' })
