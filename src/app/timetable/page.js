@@ -550,9 +550,20 @@ export default function SchoolTimetableSystem() {
   
   // ─── EFFECTS ───────────────────────────────────────────────────────────────
   useEffect(() => {
-    const stored = localStorage.getItem("theme")
-    const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-    const prefersDark = stored ? stored === "dark" : systemPrefersDark
+    // Check system preference first, then localStorage
+    let prefersDark = false
+    try {
+      const stored = localStorage.getItem("theme")
+      if (stored) {
+        prefersDark = stored === "dark"
+      } else if (typeof window !== 'undefined') {
+        prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+      }
+    } catch (e) {
+      // Fallback to light mode if localStorage fails
+      prefersDark = false
+    }
+    
     setIsDark(prefersDark)
     document.documentElement.classList.toggle("dark", prefersDark)
     setMounted(true)
@@ -1351,8 +1362,9 @@ export default function SchoolTimetableSystem() {
               </h1>
             </div>
             <div className="flex items-center gap-2">
-              <button onClick={() => setIsDark(!isDark)} className="p-2 rounded-lg hover:bg-black/[.05] dark:hover:bg-white/[.05] text-[#55557a] dark:text-[#8888aa]">
-                {isDark ? <Sun size={18} /> : <Moon size={18} />}
+              <button onClick={() => setIsDark(!isDark)} className="p-2 rounded-lg hover:bg-black/[.05] dark:hover:bg-white/[.05] text-[#55557a] dark:text-[#8888aa]" title={isDark ? 'สว่าง' : 'มืด'}>
+                {mounted && (isDark ? <Sun size={18} /> : <Moon size={18} />)}
+                {!mounted && <Moon size={18} className="opacity-50" />}
               </button>
             </div>
           </div>
