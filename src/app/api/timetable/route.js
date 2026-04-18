@@ -73,6 +73,32 @@ export async function POST(request) {
   }
 }
 
+// PUT /api/timetable (Bulk save - clear and reinsert)
+export async function PUT(request) {
+  try {
+    const { entries, classroom, academicYearId } = await request.json()
+    
+    // Delete existing entries for this classroom/year
+    await query(
+      'DELETE FROM timetable WHERE classroom = ? AND academic_year_id = ?',
+      [classroom, academicYearId]
+    )
+    
+    // Insert new entries
+    for (const entry of entries) {
+      const id = crypto.randomUUID()
+      await query(
+        'INSERT INTO timetable (id, day, period, subject_id, teacher_id, classroom, academic_year_id) VALUES (?, ?, ?, ?, ?, ?, ?)',
+        [id, entry.day, entry.period, entry.subjectId, entry.teacherId, classroom, academicYearId]
+      )
+    }
+    
+    return NextResponse.json({ success: true, message: 'บันทึกตารางเรียนเรียบร้อย' })
+  } catch (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+}
+
 // DELETE /api/timetable
 export async function DELETE(request) {
   try {

@@ -568,18 +568,40 @@ export default function SchoolTimetableSystem() {
   const loadAllData = async () => {
     setLoading(true)
     try {
-      // Simulated data loading - replace with actual API calls
-      await Promise.all([
-        loadSchoolInfo(),
-        loadAcademicYears(),
-        loadAdmins(),
-        loadPeriods(),
-        loadSubjects(),
-        loadTeachers(),
-        loadAssignments(),
-        loadTimetable(),
-        loadActivityLog()
-      ])
+      const res = await fetch('/api/all-data')
+      if (!res.ok) throw new Error('Failed to load data')
+      const data = await res.json()
+      
+      setSchoolInfo(data.schoolInfo || {})
+      setAcademicYears(data.academicYears || [])
+      setAdmins(data.admins || [])
+      setPeriods((data.settings || []).map(p => ({
+        id: p.id, periodNumber: p.period_number, startTime: parseTimeValue(p.start_time),
+        endTime: parseTimeValue(p.end_time), isActive: p.is_active, label: p.label
+      })))
+      setSubjects((data.subjects || []).map(s => ({
+        id: s.id, code: s.code, name: s.name, periodsPerWeek: s.periods_per_week,
+        type: s.type, classroom: s.classroom
+      })))
+      setTeachers((data.teachers || []).map(t => ({
+        id: t.id, prefix: t.prefix, firstName: t.first_name, lastName: t.last_name, department: t.department
+      })))
+      setAssignments((data.assignments || []).map(a => ({
+        id: a.id, teacherId: a.teacher_id, subjectId: a.subject_id, classroom: a.classroom,
+        academicYearId: a.academic_year_id, teacherPrefix: a.teacher_prefix,
+        teacherFirstName: a.teacher_first_name, teacherLastName: a.teacher_last_name,
+        subjectCode: a.subject_code, subjectName: a.subject_name
+      })))
+      setTimetable((data.timetable || []).map(t => ({
+        id: t.id, day: t.day, period: t.period, subjectId: t.subject_id, teacherId: t.teacher_id,
+        classroom: t.classroom, academicYearId: t.academic_year_id,
+        subjectCode: t.subject_code, subjectName: t.subject_name, subjectType: t.subject_type,
+        teacherPrefix: t.teacher_prefix, teacherFirstName: t.teacher_first_name, teacherLastName: t.teacher_last_name
+      })))
+      setActivityLog((data.activityLog || []).map(a => ({
+        id: a.id, action: a.action, user: a.user, detail: a.detail,
+        timestamp: a.timestamp, ipAddress: a.ip_address, device: a.device
+      })))
     } catch (error) {
       console.error('Error loading data:', error)
     } finally {
@@ -588,90 +610,101 @@ export default function SchoolTimetableSystem() {
   }
   
   const loadSchoolInfo = async () => {
-    // Replace with actual API call
-    setSchoolInfo({
-      schoolName: 'โรงเรียนตัวอย่าง',
-      affiliation: 'สำนักงานเขตพื้นที่การศึกษา',
-      logoURL: '',
-      address: '123 ถนนตัวอย่าง',
-      phone: '02-123-4567',
-      email: 'school@example.ac.th'
-    })
+    try {
+      const res = await fetch('/api/school-info')
+      const data = await res.json()
+      if (!data.error) setSchoolInfo(data)
+    } catch (error) { console.error('Error loading school info:', error) }
   }
   
   const loadAcademicYears = async () => {
-    const currentYear = new Date().getFullYear() + 543
-    setAcademicYears([
-      { id: '1', year: currentYear, semester: 1, startDate: `${currentYear-543}-05-01`, endDate: `${currentYear-543}-09-30`, isActive: true },
-      { id: '2', year: currentYear, semester: 2, startDate: `${currentYear-543}-10-01`, endDate: `${currentYear-543+1}-02-28`, isActive: false }
-    ])
+    try {
+      const res = await fetch('/api/academic-years')
+      const data = await res.json()
+      if (Array.isArray(data)) setAcademicYears(data.map(y => ({
+        id: y.id, year: y.year, semester: y.semester,
+        startDate: y.start_date, endDate: y.end_date, isActive: y.is_active
+      })))
+    } catch (error) { console.error('Error loading academic years:', error) }
   }
   
   const loadAdmins = async () => {
-    setAdmins([
-      { id: '1', title: 'นาย', firstName: 'สมชาย', lastName: 'ใจดี', position: 'ผู้อำนวยการ' },
-      { id: '2', title: 'นาง', firstName: 'สมหญิง', lastName: 'รักเรียน', position: 'รองผู้อำนวยการ' }
-    ])
+    try {
+      const res = await fetch('/api/administrators')
+      const data = await res.json()
+      if (Array.isArray(data)) setAdmins(data.map(a => ({
+        id: a.id, title: a.title, firstName: a.first_name, lastName: a.last_name, position: a.position
+      })))
+    } catch (error) { console.error('Error loading admins:', error) }
   }
   
   const loadPeriods = async () => {
-    setPeriods([
-      { id: '1', periodNumber: 1, startTime: '08:30', endTime: '09:20', isActive: true, label: 'คาบที่ 1' },
-      { id: '2', periodNumber: 2, startTime: '09:20', endTime: '10:10', isActive: true, label: 'คาบที่ 2' },
-      { id: '3', periodNumber: 3, startTime: '10:10', endTime: '11:00', isActive: true, label: 'คาบที่ 3' },
-      { id: '4', periodNumber: 4, startTime: '11:00', endTime: '11:50', isActive: true, label: 'คาบที่ 4' },
-      { id: '5', periodNumber: 5, startTime: '12:50', endTime: '13:40', isActive: true, label: 'คาบที่ 5 (บ่าย)' },
-      { id: '6', periodNumber: 6, startTime: '13:40', endTime: '14:30', isActive: true, label: 'คาบที่ 6' },
-      { id: '7', periodNumber: 7, startTime: '14:30', endTime: '15:20', isActive: true, label: 'คาบที่ 7' },
-      { id: '8', periodNumber: 8, startTime: '15:20', endTime: '16:10', isActive: true, label: 'คาบที่ 8' }
-    ])
+    try {
+      const res = await fetch('/api/periods')
+      const data = await res.json()
+      if (Array.isArray(data)) setPeriods(data.map(p => ({
+        id: p.id, periodNumber: p.period_number, startTime: parseTimeValue(p.start_time),
+        endTime: parseTimeValue(p.end_time), isActive: p.is_active, label: p.label
+      })))
+    } catch (error) { console.error('Error loading periods:', error) }
   }
   
   const loadSubjects = async () => {
-    setSubjects([
-      { id: '1', code: 'ท31101', name: 'ภาษาไทยพื้นฐาน', periodsPerWeek: 5, type: 'พื้นฐาน', classroom: 'ม.1/1' },
-      { id: '2', code: 'ค31101', name: 'คณิตศาสตร์พื้นฐาน', periodsPerWeek: 5, type: 'พื้นฐาน', classroom: 'ม.1/1' },
-      { id: '3', code: 'ว31101', name: 'วิทยาศาสตร์พื้นฐาน', periodsPerWeek: 4, type: 'พื้นฐาน', classroom: 'ม.1/1' },
-      { id: '4', code: 'อ31101', name: 'ภาษาอังกฤษพื้นฐาน', periodsPerWeek: 4, type: 'พื้นฐาน', classroom: 'ม.1/1' },
-      { id: '5', code: 'ส31101', name: 'สังคมศึกษาพื้นฐาน', periodsPerWeek: 3, type: 'พื้นฐาน', classroom: 'ม.1/1' },
-      { id: '6', code: 'พ31101', name: 'สุขศึกษาและพลศึกษา', periodsPerWeek: 3, type: 'พื้นฐาน', classroom: 'ม.1/1' },
-      { id: '7', code: 'ศ31101', name: 'ศิลปะ', periodsPerWeek: 2, type: 'พื้นฐาน', classroom: 'ม.1/1' },
-      { id: '8', code: 'ง31101', name: 'การงานอาชีพ', periodsPerWeek: 2, type: 'พื้นฐาน', classroom: 'ม.1/1' }
-    ])
+    try {
+      const res = await fetch('/api/subjects')
+      const data = await res.json()
+      if (Array.isArray(data)) setSubjects(data.map(s => ({
+        id: s.id, code: s.code, name: s.name, periodsPerWeek: s.periods_per_week,
+        type: s.type, classroom: s.classroom
+      })))
+    } catch (error) { console.error('Error loading subjects:', error) }
   }
   
   const loadTeachers = async () => {
-    setTeachers([
-      { id: '1', prefix: 'นาย', firstName: 'สมศักดิ์', lastName: 'รักการสอน', department: 'ภาษาไทย' },
-      { id: '2', prefix: 'นาง', firstName: 'มณีรัตน์', lastName: 'คณิตศาสตร์ดี', department: 'คณิตศาสตร์' },
-      { id: '3', prefix: 'นาย', firstName: 'วิทยา', lastName: 'วิทย์เก่ง', department: 'วิทยาศาสตร์' },
-      { id: '4', prefix: 'นางสาว', firstName: 'อังกฤษ', lastName: 'ภาษาดี', department: 'ภาษาต่างประเทศ' },
-      { id: '5', prefix: 'นาย', firstName: 'สังคม', lastName: 'สงเคราะห์', department: 'สังคมศึกษา' }
-    ])
+    try {
+      const res = await fetch('/api/teachers')
+      const data = await res.json()
+      if (Array.isArray(data)) setTeachers(data.map(t => ({
+        id: t.id, prefix: t.prefix, firstName: t.first_name, lastName: t.last_name, department: t.department
+      })))
+    } catch (error) { console.error('Error loading teachers:', error) }
   }
   
   const loadAssignments = async () => {
-    setAssignments([
-      { id: '1', teacherId: '1', subjectId: '1', classroom: 'ม.1/1', academicYearId: '1' },
-      { id: '2', teacherId: '2', subjectId: '2', classroom: 'ม.1/1', academicYearId: '1' },
-      { id: '3', teacherId: '3', subjectId: '3', classroom: 'ม.1/1', academicYearId: '1' },
-      { id: '4', teacherId: '4', subjectId: '4', classroom: 'ม.1/1', academicYearId: '1' },
-      { id: '5', teacherId: '5', subjectId: '5', classroom: 'ม.1/1', academicYearId: '1' }
-    ])
+    try {
+      const res = await fetch('/api/assignments')
+      const data = await res.json()
+      if (Array.isArray(data)) setAssignments(data.map(a => ({
+        id: a.id, teacherId: a.teacher_id, subjectId: a.subject_id, classroom: a.classroom,
+        academicYearId: a.academic_year_id, teacherPrefix: a.teacher_prefix,
+        teacherFirstName: a.teacher_first_name, teacherLastName: a.teacher_last_name,
+        subjectCode: a.subject_code, subjectName: a.subject_name
+      })))
+    } catch (error) { console.error('Error loading assignments:', error) }
   }
   
   const loadTimetable = async () => {
-    setTimetable([
-      { id: '1', day: 'จันทร์', period: 1, subjectId: '1', teacherId: '1', classroom: 'ม.1/1', academicYearId: '1' },
-      { id: '2', day: 'จันทร์', period: 2, subjectId: '2', teacherId: '2', classroom: 'ม.1/1', academicYearId: '1' }
-    ])
+    try {
+      const res = await fetch('/api/timetable')
+      const data = await res.json()
+      if (Array.isArray(data)) setTimetable(data.map(t => ({
+        id: t.id, day: t.day, period: t.period, subjectId: t.subject_id, teacherId: t.teacher_id,
+        classroom: t.classroom, academicYearId: t.academic_year_id,
+        subjectCode: t.subject_code, subjectName: t.subject_name, subjectType: t.subject_type,
+        teacherPrefix: t.teacher_prefix, teacherFirstName: t.teacher_first_name, teacherLastName: t.teacher_last_name
+      })))
+    } catch (error) { console.error('Error loading timetable:', error) }
   }
   
   const loadActivityLog = async () => {
-    setActivityLog([
-      { id: '1', action: 'LOGIN', user: 'admin', detail: 'เข้าสู่ระบบ', timestamp: new Date().toISOString() },
-      { id: '2', action: 'ADD_SUBJECT', user: 'admin', detail: 'เพิ่มรายวิชา ท31101', timestamp: new Date().toISOString() }
-    ])
+    try {
+      const res = await fetch('/api/activity-log')
+      const data = await res.json()
+      if (Array.isArray(data)) setActivityLog(data.map(a => ({
+        id: a.id, action: a.action, user: a.user, detail: a.detail,
+        timestamp: a.timestamp, ipAddress: a.ip_address, device: a.device
+      })))
+    } catch (error) { console.error('Error loading activity log:', error) }
   }
   
   // ─── HELPERS ───────────────────────────────────────────────────────────────

@@ -32,3 +32,38 @@ export async function POST(request) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 }
+
+// PUT /api/academic-years
+export async function PUT(request) {
+  try {
+    const { id, year, semester, startDate, endDate, isActive } = await request.json()
+    
+    // If setting this year as active, deactivate others
+    if (isActive) {
+      await query('UPDATE academic_years SET is_active = FALSE')
+    }
+    
+    await query(
+      'UPDATE academic_years SET year = ?, semester = ?, start_date = ?, end_date = ?, is_active = ? WHERE id = ?',
+      [year, semester, startDate, endDate, isActive, id]
+    )
+    
+    return NextResponse.json({ success: true, message: 'แก้ไขปีการศึกษาเรียบร้อย' })
+  } catch (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+}
+
+// DELETE /api/academic-years
+export async function DELETE(request) {
+  try {
+    const { searchParams } = new URL(request.url)
+    const id = searchParams.get('id')
+    
+    await query('DELETE FROM academic_years WHERE id = ?', [id])
+    
+    return NextResponse.json({ success: true, message: 'ลบปีการศึกษาเรียบร้อย' })
+  } catch (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+}
