@@ -16,7 +16,7 @@ export default function RootLayout({ children }) {
           rel="stylesheet"
         />
       </head>
-      <body className="font-sans antialiased" style={{ fontFamily: 'Kanit, sans-serif' }}>
+      <body className="font-sans antialiased" style={{ fontFamily: 'Kanit, sans-serif' }} suppressHydrationWarning>
         {children}
       </body>
     </html>
