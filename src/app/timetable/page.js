@@ -536,6 +536,7 @@ export default function SchoolTimetableSystem() {
   const [showModal, setShowModal] = useState(false)
   const [modalType, setModalType] = useState('')
   const [editingItem, setEditingItem] = useState(null)
+  const [formData, setFormData] = useState({})
   const [confirmDelete, setConfirmDelete] = useState({ open: false, id: null, name: '', onConfirm: null })
   
   // Timetable builder states
@@ -563,6 +564,13 @@ export default function SchoolTimetableSystem() {
     document.documentElement.classList.toggle("dark", isDark)
     localStorage.setItem("theme", isDark ? "dark" : "light")
   }, [isDark])
+  
+  // Reset form data when editingItem changes
+  useEffect(() => {
+    if (showModal) {
+      setFormData(editingItem || {})
+    }
+  }, [editingItem, showModal])
   
   // ─── DATA LOADING ──────────────────────────────────────────────────────────
   const loadAllData = async () => {
@@ -716,6 +724,7 @@ export default function SchoolTimetableSystem() {
   const openModal = (type, item = null) => {
     setModalType(type)
     setEditingItem(item)
+    setFormData(item || {})
     setShowModal(true)
   }
   
@@ -723,6 +732,7 @@ export default function SchoolTimetableSystem() {
     setShowModal(false)
     setModalType('')
     setEditingItem(null)
+    setFormData({})
   }
   
   const confirmDeleteAction = (id, name, onConfirm) => {
@@ -1161,8 +1171,6 @@ export default function SchoolTimetableSystem() {
   
   // ─── MODAL FORMS ─────────────────────────────────────────────────────────────
   const renderModalForm = () => {
-    const [formData, setFormData] = useState(editingItem || {})
-    
     const submitForm = () => {
       const typeMap = { academicYear: 'academicYear', admin: 'admin', subject: 'subject', teacher: 'teacher', assignment: 'assignment' }
       handleSave(typeMap[modalType], formData, !!editingItem)
