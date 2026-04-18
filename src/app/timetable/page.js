@@ -270,23 +270,27 @@ function StatCard({ label, value, sub, accent, children, onClick }) {
   return (
     <div 
       onClick={onClick}
-      className={`relative rounded-2xl border border-black/[.08] dark:border-white/[.07] bg-white dark:bg-[#121221] overflow-hidden transition-all duration-200 hover:-translate-y-0.5 hover:border-black/20 dark:hover:border-white/[.14] group ${onClick ? 'cursor-pointer' : ''}`}>
-      <div className="p-4 sm:p-5 relative z-10">
-        <div className="flex items-start justify-between mb-2">
-          <span className="text-[10px] font-medium tracking-widest uppercase text-[#9999b8] dark:text-[#55556a] leading-tight pr-1">
+      className={`relative rounded-2xl border border-black/[.08] dark:border-white/[.07] bg-white dark:bg-[#121221] overflow-hidden transition-all duration-200 hover:-translate-y-0.5 hover:border-black/20 dark:hover:border-white/[.14] group ${onClick ? 'cursor-pointer' : ''} touch-manipulation`}>
+      <div className="p-3 sm:p-4 lg:p-5 relative z-10">
+        <div className="flex items-start justify-between mb-1.5 sm:mb-2">
+          <span className="text-[9px] sm:text-[10px] font-medium tracking-widest uppercase text-[#9999b8] dark:text-[#55556a] leading-tight pr-1 truncate max-w-[70%]">
             {label}
           </span>
           <div
-            className="w-7 h-7 rounded-[7px] flex-shrink-0 bg-black/[.04] dark:bg-white/[.05] border border-black/[.06] dark:border-white/[.07] flex items-center justify-center"
+            className="w-6 h-6 sm:w-7 sm:h-7 rounded-[7px] flex-shrink-0 bg-black/[.04] dark:bg-white/[.05] border border-black/[.06] dark:border-white/[.07] flex items-center justify-center"
             style={{ color: accent }}
           >
             {children}
           </div>
         </div>
-        <p className="text-xl sm:text-[24px] font-bold text-[#18182e] dark:text-[#eeeef8] tracking-tight leading-none break-all">
+        <div className="text-[18px] sm:text-[22px] lg:text-[26px] font-bold text-[#18182e] dark:text-[#eeeef8] leading-none tracking-tight">
           {value}
-        </p>
-        {sub && <p className="text-[11px] text-[#9999b8] dark:text-[#55556a] mt-1.5">{sub}</p>}
+        </div>
+        {sub && (
+          <div className="text-[10px] sm:text-[11px] text-[#9999b8] dark:text-[#55556a] mt-1 leading-snug truncate">
+            {sub}
+          </div>
+        )}
       </div>
       <div
         className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
@@ -520,6 +524,7 @@ export default function SchoolTimetableSystem() {
   const [activeSection, setActiveSection] = useState("dashboard")
   const [loading, setLoading] = useState(true)
   const [sidebarOpen, setSidebarOpen] = useState(true)
+  const [isMobile, setIsMobile] = useState(false)
   
   // Data states
   const [schoolInfo, setSchoolInfo] = useState({ schoolName: '', affiliation: '', logoURL: '', address: '', phone: '', email: '' })
@@ -570,6 +575,12 @@ export default function SchoolTimetableSystem() {
     
     // Load all data
     loadAllData()
+    
+    // Check mobile viewport
+    const checkMobile = () => setIsMobile(window.innerWidth < 1024)
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
   }, [])
   
   useEffect(() => {
@@ -976,34 +987,34 @@ export default function SchoolTimetableSystem() {
   
   // ─── REUSABLE CRUD COMPONENTS ──────────────────────────────────────────────
   const CrudHeader = ({ title, icon: Icon, onAdd }) => (
-    <div className="flex items-center justify-between mb-6">
-      <h2 className="text-lg font-semibold text-[#18182e] dark:text-[#eeeef8] flex items-center gap-2">
-        <Icon size={18} className="text-[#6366f1]" /> {title}
+    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 sm:mb-6">
+      <h2 className="text-base sm:text-lg font-semibold text-[#18182e] dark:text-[#eeeef8] flex items-center gap-2">
+        <Icon className="text-[#6366f1] w-4 h-4 sm:w-[18px] sm:h-[18px]" /> {title}
       </h2>
-      <button onClick={onAdd} className={btnPrimaryCls}>
+      <button onClick={onAdd} className={`${btnPrimaryCls} w-full sm:w-auto justify-center`}>
         <Plus size={14} /> เพิ่ม
       </button>
     </div>
   )
   
   const DataTable = ({ headers, children, empty }) => (
-    <div className="rounded-2xl border border-black/[.08] dark:border-white/[.07] bg-white dark:bg-[#121221] overflow-hidden">
-      <div className="overflow-x-auto">
-        <table className="w-full">
+    <div className="rounded-2xl border border-black/[.08] dark:border-white/[.07] bg-white dark:bg-[#121221] overflow-hidden -mx-2 sm:mx-0">
+      <div className="overflow-x-auto touch-pan-x">
+        <table className="w-full min-w-[600px] sm:min-w-0">
           <thead className="bg-black/[.03] dark:bg-white/[.03]">
-            <tr>{headers.map((h, i) => <th key={i} className="px-4 py-3 text-left text-[11px] font-semibold text-[#55557a] dark:text-[#8888aa] uppercase tracking-wider">{h}</th>)}</tr>
+            <tr>{headers.map((h, i) => <th key={i} className="px-3 sm:px-4 py-3 text-left text-[11px] font-semibold text-[#55557a] dark:text-[#8888aa] uppercase tracking-wider whitespace-nowrap">{h}</th>)}</tr>
           </thead>
           <tbody className="divide-y divide-black/[.06] dark:divide-white/[.06]">{children}</tbody>
         </table>
       </div>
-      {empty && <div className="p-8 text-center text-[#9999b8] dark:text-[#55556a]">ไม่มีข้อมูล</div>}
+      {empty && <div className="p-6 sm:p-8 text-center text-[#9999b8] dark:text-[#55556a]">ไม่มีข้อมูล</div>}
     </div>
   )
   
   const ActionButtons = ({ onEdit, onDelete }) => (
     <div className="flex gap-1">
-      <button onClick={onEdit} className="p-1.5 rounded-lg hover:bg-black/[.05] dark:hover:bg-white/[.05] text-blue-500"><Edit2 size={14} /></button>
-      <button onClick={onDelete} className="p-1.5 rounded-lg hover:bg-black/[.05] dark:hover:bg-white/[.05] text-red-500"><Trash2 size={14} /></button>
+      <button onClick={onEdit} className="p-2 sm:p-1.5 rounded-lg hover:bg-black/[.05] dark:hover:bg-white/[.05] text-blue-500 touch-manipulation"><Edit2 size={16} className="w-4 h-4 sm:w-3.5 sm:h-3.5" /></button>
+      <button onClick={onDelete} className="p-2 sm:p-1.5 rounded-lg hover:bg-black/[.05] dark:hover:bg-white/[.05] text-red-500 touch-manipulation"><Trash2 size={16} className="w-4 h-4 sm:w-3.5 sm:h-3.5" /></button>
     </div>
   )
   
@@ -1305,8 +1316,16 @@ export default function SchoolTimetableSystem() {
       <style>{minimalCss}</style>
       <LoadingOverlay show={loading} />
       
+      {/* Mobile Sidebar Overlay */}
+      {isMobile && sidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-30 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+      
       {/* Sidebar */}
-      <aside className={`fixed left-0 top-0 bottom-0 z-40 w-64 bg-white dark:bg-[#121221] border-r border-black/[.08] dark:border-white/[.07] transition-transform duration-300 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+      <aside className={`fixed left-0 top-0 bottom-0 z-40 w-64 bg-white dark:bg-[#121221] border-r border-black/[.08] dark:border-white/[.07] transition-transform duration-300 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0`}>
         <div className="p-4 border-b border-black/[.08] dark:border-white/[.07]">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#6366f1] to-[#8b5cf6] flex items-center justify-center text-white">
@@ -1346,12 +1365,12 @@ export default function SchoolTimetableSystem() {
       </aside>
       
       {/* Main Content */}
-      <main className={`transition-all duration-300 ${sidebarOpen ? 'ml-64' : 'ml-0'}`}>
+      <main className={`transition-all duration-300 lg:ml-64 ${sidebarOpen ? 'lg:ml-64' : 'lg:ml-0'}`}>
         {/* Header */}
         <header className="sticky top-0 z-30 bg-white/80 dark:bg-[#121221]/80 backdrop-blur-md border-b border-black/[.08] dark:border-white/[.07]">
           <div className="px-6 py-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <button onClick={() => setSidebarOpen(!sidebarOpen)} className="p-2 rounded-lg hover:bg-black/[.05] dark:hover:bg-white/[.05] text-[#55557a] dark:text-[#8888aa]">
+              <button onClick={() => setSidebarOpen(!sidebarOpen)} className="p-2 rounded-lg hover:bg-black/[.05] dark:hover:bg-white/[.05] text-[#55557a] dark:text-[#8888aa] lg:hidden">
                 <Menu size={20} />
               </button>
               <h1 className="text-lg font-semibold text-[#18182e] dark:text-[#eeeef8]">
@@ -1377,7 +1396,7 @@ export default function SchoolTimetableSystem() {
         </header>
         
         {/* Content */}
-        <div className="p-6">
+        <div className="p-3 sm:p-4 lg:p-6 safe-area-inset">
           {activeSection === 'dashboard' && renderDashboard()}
           {activeSection === 'schoolInfo' && renderSchoolInfo()}
           {activeSection === 'academicYears' && renderAcademicYears()}

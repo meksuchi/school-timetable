@@ -24,6 +24,14 @@
   background: rgba(99, 102, 241, 0.5);
 }
 
+/* Hide scrollbar on mobile */
+@media (max-width: 768px) {
+  ::-webkit-scrollbar {
+    width: 2px;
+    height: 2px;
+  }
+}
+
 /* Smooth scrolling */
 html {
   scroll-behavior: smooth;
@@ -32,4 +40,46 @@ html {
 /* Dark mode base styles */
 .dark {
   color-scheme: dark;
+}
+
+/* Responsive text sizing */
+@media (max-width: 640px) {
+  html {
+    font-size: 14px;
+  }
+}
+
+/* Touch-friendly tap targets */
+@media (max-width: 768px) {
+  button, 
+  a, 
+  input, 
+  select, 
+  textarea {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
+/* Prevent text zoom on iOS */
+@media screen and (max-width: 768px) {
+  input[type="text"],
+  input[type="number"],
+  input[type="email"],
+  input[type="tel"],
+  input[type="password"],
+  select,
+  textarea {
+    font-size: 16px;
+  }
+}
+
+/* Safe area for notched devices */
+@supports (padding: max(0px)) {
+  .safe-area-inset {
+    padding-left: max(1rem, env(safe-area-inset-left));
+    padding-right: max(1rem, env(safe-area-inset-right));
+    padding-top: max(1rem, env(safe-area-inset-top));
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
 }
