@@ -597,7 +597,9 @@ export default function SchoolTimetableSystem() {
       
       setSchoolInfo(data.schoolInfo || {})
       setAcademicYears(data.academicYears || [])
-      setAdmins(data.admins || [])
+      setAdmins((data.admins || []).map(a => ({
+        id: a.id, title: a.title, firstName: a.first_name, lastName: a.last_name, position: a.position
+      })))
       setPeriods((data.settings || []).map(p => ({
         id: p.id, periodNumber: p.period_number, startTime: parseTimeValue(p.start_time),
         endTime: parseTimeValue(p.end_time), isActive: p.is_active, label: p.label
