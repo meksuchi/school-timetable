@@ -1300,21 +1300,12 @@ export default function SchoolTimetableSystem() {
   }
   
   // ─── MAIN RENDER ───────────────────────────────────────────────────────────
-  if (!mounted) {
-    return (
-      <div className="h-screen w-full bg-[#f8fafc] dark:bg-[#0a0a10] flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 rounded-full border-2 border-[#6366f1]/30 border-t-[#6366f1] animate-spin mx-auto mb-4" />
-          <p className="text-[14px] text-[#9999b8] dark:text-[#55556a] tracking-widest uppercase">กำลังโหลด...</p>
-        </div>
-      </div>
-    )
-  }
+  const isLoading = !mounted || loading
   
   return (
     <div className="min-h-screen bg-[#f8fafc] dark:bg-[#0a0a10] transition-colors duration-500 ease-in-out">
       <style>{minimalCss}</style>
-      <LoadingOverlay show={loading} />
+      <LoadingOverlay show={isLoading} />
       
       {/* Mobile Sidebar Overlay */}
       {isMobile && sidebarOpen && (
