@@ -42,6 +42,47 @@ html {
   color-scheme: dark;
 }
 
+/* Smooth transitions for theme switching */
+*,
+*::before,
+*::after {
+  transition-property: background-color, border-color, color, fill, stroke;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+
+/* Exclude performance-critical elements from transitions */
+.no-transition,
+.animate-spin,
+[class*="animate-"] {
+  transition: none !important;
+}
+
+/* Force dark mode colors for specific elements */
+.dark .bg-paper {
+  background-color: #121221;
+}
+
+.dark .text-primary {
+  color: #eeeef8;
+}
+
+.dark .text-secondary {
+  color: #8888aa;
+}
+
+.dark .text-muted {
+  color: #55556a;
+}
+
+.dark .border-default {
+  border-color: rgba(255, 255, 255, 0.07);
+}
+
+.dark .border-hover:hover {
+  border-color: rgba(255, 255, 255, 0.14);
+}
+
 /* Responsive text sizing */
 @media (max-width: 640px) {
   html {

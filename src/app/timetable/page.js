@@ -1312,7 +1312,7 @@ export default function SchoolTimetableSystem() {
   }
   
   return (
-    <div className="min-h-screen bg-[#f8fafc] dark:bg-[#0a0a10] transition-colors duration-300">
+    <div className="min-h-screen bg-[#f8fafc] dark:bg-[#0a0a10] transition-colors duration-500 ease-in-out">
       <style>{minimalCss}</style>
       <LoadingOverlay show={loading} />
       
