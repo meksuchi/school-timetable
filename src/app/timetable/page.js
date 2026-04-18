@@ -551,7 +551,8 @@ export default function SchoolTimetableSystem() {
   // ─── EFFECTS ───────────────────────────────────────────────────────────────
   useEffect(() => {
     const stored = localStorage.getItem("theme")
-    const prefersDark = stored === "dark"
+    const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+    const prefersDark = stored ? stored === "dark" : systemPrefersDark
     setIsDark(prefersDark)
     document.documentElement.classList.toggle("dark", prefersDark)
     setMounted(true)
@@ -779,14 +780,14 @@ export default function SchoolTimetableSystem() {
           </h3>
           <div className="space-y-3">
             {activityLog.slice(0, 5).map((log, i) => (
-              <div key={log.id} className="flex items-start gap-3 p-3 rounded-xl bg-black/[.02] dark:bg-white/[.02]">
+              <div key={log.id || i} className="flex items-start gap-3 p-3 rounded-xl bg-black/[.02] dark:bg-white/[.02]">
                 <div className="w-8 h-8 rounded-lg bg-[#6366f1]/10 flex items-center justify-center flex-shrink-0">
                   <span className="text-xs">📝</span>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-[13px] font-medium text-[#18182e] dark:text-[#eeeef8] truncate">{log.action}</p>
-                  <p className="text-[11px] text-[#9999b8] dark:text-[#55556a] truncate">{log.detail}</p>
-                  <p className="text-[10px] text-[#9999b8] dark:text-[#55556a]">{formatThaiDateTime(log.timestamp)}</p>
+                  <p className="text-[13px] font-medium text-[#18182e] dark:text-[#eeeef8] truncate">{log.action || '-'}</p>
+                  <p className="text-[11px] text-[#9999b8] dark:text-[#55556a] truncate">{log.detail || ''}</p>
+                  <p className="text-[10px] text-[#9999b8] dark:text-[#55556a]">{log.timestamp ? formatThaiDateTime(log.timestamp) : '-'}</p>
                 </div>
               </div>
             ))}
@@ -805,11 +806,11 @@ export default function SchoolTimetableSystem() {
             {admins.map((admin) => (
               <div key={admin.id} className="flex items-center gap-3 p-3 rounded-xl bg-black/[.02] dark:bg-white/[.02]">
                 <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#6366f1] to-[#8b5cf6] flex items-center justify-center text-white font-bold text-sm">
-                  {admin.firstName[0]}
+                  {admin.firstName?.[0] || '?'}
                 </div>
                 <div>
-                  <p className="text-[13px] font-medium text-[#18182e] dark:text-[#eeeef8]">{admin.title}{admin.firstName} {admin.lastName}</p>
-                  <p className="text-[11px] text-[#9999b8] dark:text-[#55556a]">{admin.position}</p>
+                  <p className="text-[13px] font-medium text-[#18182e] dark:text-[#eeeef8]">{admin.title || ''}{admin.firstName || ''} {admin.lastName || ''}</p>
+                  <p className="text-[11px] text-[#9999b8] dark:text-[#55556a]">{admin.position || '-'}</p>
                 </div>
               </div>
             ))}
@@ -843,6 +844,28 @@ export default function SchoolTimetableSystem() {
   
   const handleSave = async (type, item, isEdit = false) => {
     try {
+      // Validation
+      if (type === 'academicYear' && (!item.year || !item.semester)) {
+        fireToast('error', 'กรุณากรอกปีการศึกษาและภาคเรียน')
+        return
+      }
+      if (type === 'admin' && (!item.title || !item.firstName || !item.lastName)) {
+        fireToast('error', 'กรุณากรอกข้อมูลผู้บริหารให้ครบถ้วน')
+        return
+      }
+      if (type === 'subject' && (!item.code || !item.name)) {
+        fireToast('error', 'กรุณากรอกรหัสวิชาและชื่อวิชา')
+        return
+      }
+      if (type === 'teacher' && (!item.prefix || !item.firstName || !item.lastName)) {
+        fireToast('error', 'กรุณากรอกข้อมูลครูให้ครบถ้วน')
+        return
+      }
+      if (type === 'assignment' && (!item.teacherId || !item.subjectId || !item.classroom)) {
+        fireToast('error', 'กรุณาเลือกครู วิชา และห้องเรียน')
+        return
+      }
+      
       const endpoints = {
         academicYear: '/api/academic-years',
         admin: '/api/administrators',
@@ -970,15 +993,15 @@ export default function SchoolTimetableSystem() {
   const renderAcademicYears = () => (
     <div>
       <CrudHeader title="ปีการศึกษา" icon={Calendar} onAdd={() => openModal('academicYear')} />
-      <DataTable headers={['ปี', 'ภาคเรียน', 'เริ่ม', 'สิ้นสุด', 'ใช้งาน', '']} empty={academicYears.length === 0}>
-        {academicYears.map(year => (
-          <tr key={year.id} className="hover:bg-black/[.02] dark:hover:bg-white/[.02]">
-            <td className="px-4 py-3 text-[13px] text-[#18182e] dark:text-[#eeeef8]">{year.year}</td>
-            <td className="px-4 py-3 text-[13px]">{year.semester}</td>
-            <td className="px-4 py-3 text-[13px] text-[#55557a] dark:text-[#8888aa]">{year.startDate}</td>
-            <td className="px-4 py-3 text-[13px] text-[#55557a] dark:text-[#8888aa]">{year.endDate}</td>
-            <td className="px-4 py-3">{year.isActive ? <Badge type="success">ใช้งาน</Badge> : <Badge>ไม่ใช้</Badge>}</td>
-            <td className="px-4 py-3"><ActionButtons onEdit={() => openModal('academicYear', year)} onDelete={() => confirmDeleteAction(year.id, `${year.year}/${year.semester}`, () => handleDelete('academicYear', year.id))} /></td>
+      <DataTable headers={['ปี', 'ภาคเรียน', 'เริ่ม', 'สิ้นสุด', 'ใช้งาน', '']} empty={!academicYears || academicYears.length === 0}>
+        {(academicYears || []).map(year => (
+          <tr key={year?.id || Math.random()} className="hover:bg-black/[.02] dark:hover:bg-white/[.02]">
+            <td className="px-4 py-3 text-[13px] text-[#18182e] dark:text-[#eeeef8]">{year?.year || '-'}</td>
+            <td className="px-4 py-3 text-[13px]">{year?.semester || '-'}</td>
+            <td className="px-4 py-3 text-[13px] text-[#55557a] dark:text-[#8888aa]">{year?.startDate || '-'}</td>
+            <td className="px-4 py-3 text-[13px] text-[#55557a] dark:text-[#8888aa]">{year?.endDate || '-'}</td>
+            <td className="px-4 py-3">{year?.isActive ? <Badge type="success">ใช้งาน</Badge> : <Badge>ไม่ใช้</Badge>}</td>
+            <td className="px-4 py-3"><ActionButtons onEdit={() => openModal('academicYear', year)} onDelete={() => year?.id && confirmDeleteAction(year.id, `${year.year}/${year.semester}`, () => handleDelete('academicYear', year.id))} /></td>
           </tr>
         ))}
       </DataTable>
@@ -988,14 +1011,14 @@ export default function SchoolTimetableSystem() {
   const renderAdmins = () => (
     <div>
       <CrudHeader title="ผู้บริหาร" icon={UserCog} onAdd={() => openModal('admin')} />
-      <DataTable headers={['คำนำหน้า', 'ชื่อ', 'นามสกุล', 'ตำแหน่ง', '']} empty={admins.length === 0}>
-        {admins.map(admin => (
-          <tr key={admin.id} className="hover:bg-black/[.02] dark:hover:bg-white/[.02]">
-            <td className="px-4 py-3 text-[13px]">{admin.title}</td>
-            <td className="px-4 py-3 text-[13px] text-[#18182e] dark:text-[#eeeef8]">{admin.firstName}</td>
-            <td className="px-4 py-3 text-[13px] text-[#18182e] dark:text-[#eeeef8]">{admin.lastName}</td>
-            <td className="px-4 py-3 text-[13px] text-[#55557a] dark:text-[#8888aa]">{admin.position}</td>
-            <td className="px-4 py-3"><ActionButtons onEdit={() => openModal('admin', admin)} onDelete={() => confirmDeleteAction(admin.id, `${admin.title}${admin.firstName}`, () => handleDelete('admin', admin.id))} /></td>
+      <DataTable headers={['คำนำหน้า', 'ชื่อ', 'นามสกุล', 'ตำแหน่ง', '']} empty={!admins || admins.length === 0}>
+        {(admins || []).map(admin => (
+          <tr key={admin?.id || Math.random()} className="hover:bg-black/[.02] dark:hover:bg-white/[.02]">
+            <td className="px-4 py-3 text-[13px]">{admin?.title || '-'}</td>
+            <td className="px-4 py-3 text-[13px] text-[#18182e] dark:text-[#eeeef8]">{admin?.firstName || '-'}</td>
+            <td className="px-4 py-3 text-[13px] text-[#18182e] dark:text-[#eeeef8]">{admin?.lastName || '-'}</td>
+            <td className="px-4 py-3 text-[13px] text-[#55557a] dark:text-[#8888aa]">{admin?.position || '-'}</td>
+            <td className="px-4 py-3"><ActionButtons onEdit={() => admin && openModal('admin', admin)} onDelete={() => admin?.id && confirmDeleteAction(admin.id, `${admin.title}${admin.firstName}`, () => handleDelete('admin', admin.id))} /></td>
           </tr>
         ))}
       </DataTable>
@@ -1004,7 +1027,7 @@ export default function SchoolTimetableSystem() {
   
   const renderPeriods = () => {
     const savePeriods = async () => {
-      const data = periods.map(p => ({ id: p.id, periodNumber: p.periodNumber, startTime: p.startTime, endTime: p.endTime, isActive: p.isActive, label: p.label }))
+      const data = (periods || []).map(p => ({ id: p?.id, periodNumber: p?.periodNumber, startTime: p?.startTime, endTime: p?.endTime, isActive: p?.isActive, label: p?.label }))
       await handleSave('period', { periods: data })
     }
     return (
@@ -1013,18 +1036,18 @@ export default function SchoolTimetableSystem() {
           <h2 className="text-lg font-semibold text-[#18182e] dark:text-[#eeeef8] flex items-center gap-2"><Clock size={18} className="text-[#6366f1]" /> กำหนดเวลาเรียน</h2>
           <button onClick={savePeriods} className={btnPrimaryCls}><Save size={14} /> บันทึก</button>
         </div>
-        <DataTable headers={['คาบ', 'เวลาเริ่ม', 'เวลาจบ', 'สถานะ', '']} empty={periods.length === 0}>
-          {periods.map((period, idx) => (
-            <tr key={period.id} className="hover:bg-black/[.02] dark:hover:bg-white/[.02]">
-              <td className="px-4 py-3 text-[13px] text-[#18182e] dark:text-[#eeeef8]">คาบ {period.periodNumber}</td>
-              <td className="px-4 py-3"><input type="time" value={period.startTime} onChange={e => { const newPeriods = [...periods]; newPeriods[idx].startTime = e.target.value; setPeriods(newPeriods); }} className={fieldInputCls} /></td>
-              <td className="px-4 py-3"><input type="time" value={period.endTime} onChange={e => { const newPeriods = [...periods]; newPeriods[idx].endTime = e.target.value; setPeriods(newPeriods); }} className={fieldInputCls} /></td>
-              <td className="px-4 py-3"><input type="checkbox" checked={period.isActive} onChange={e => { const newPeriods = [...periods]; newPeriods[idx].isActive = e.target.checked; setPeriods(newPeriods); }} /></td>
+        <DataTable headers={['คาบ', 'เวลาเริ่ม', 'เวลาจบ', 'สถานะ', '']} empty={!periods || periods.length === 0}>
+          {(periods || []).map((period, idx) => (
+            <tr key={period?.id || idx} className="hover:bg-black/[.02] dark:hover:bg-white/[.02]">
+              <td className="px-4 py-3 text-[13px] text-[#18182e] dark:text-[#eeeef8]">คาบ {period?.periodNumber || idx + 1}</td>
+              <td className="px-4 py-3"><input type="time" value={period?.startTime || ''} onChange={e => { const newPeriods = [...periods]; newPeriods[idx].startTime = e.target.value; setPeriods(newPeriods); }} className={fieldInputCls} /></td>
+              <td className="px-4 py-3"><input type="time" value={period?.endTime || ''} onChange={e => { const newPeriods = [...periods]; newPeriods[idx].endTime = e.target.value; setPeriods(newPeriods); }} className={fieldInputCls} /></td>
+              <td className="px-4 py-3"><input type="checkbox" checked={period?.isActive || false} onChange={e => { const newPeriods = [...periods]; newPeriods[idx].isActive = e.target.checked; setPeriods(newPeriods); }} /></td>
               <td className="px-4 py-3"><button onClick={() => { const newPeriods = periods.filter((_, i) => i !== idx); setPeriods(newPeriods); }} className="p-1.5 rounded-lg hover:bg-red-500/10 text-red-500"><Trash2 size={14} /></button></td>
             </tr>
           ))}
         </DataTable>
-        <button onClick={() => setPeriods([...periods, { id: crypto.randomUUID(), periodNumber: periods.length + 1, startTime: '08:00', endTime: '09:00', isActive: true }])} className={`${btnSecondaryCls} mt-4`}><Plus size={14} /> เพิ่มคาบ</button>
+        <button onClick={() => setPeriods([...(periods || []), { id: crypto.randomUUID(), periodNumber: (periods || []).length + 1, startTime: '08:00', endTime: '09:00', isActive: true }])} className={`${btnSecondaryCls} mt-4`}><Plus size={14} /> เพิ่มคาบ</button>
       </div>
     )
   }
@@ -1032,15 +1055,15 @@ export default function SchoolTimetableSystem() {
   const renderSubjects = () => (
     <div>
       <CrudHeader title="รายวิชา" icon={BookOpen} onAdd={() => openModal('subject')} />
-      <DataTable headers={['รหัส', 'ชื่อวิชา', 'คาบ/สัปดาห์', 'ประเภท', 'ห้องเรียน', '']} empty={subjects.length === 0}>
-        {subjects.map(subject => (
-          <tr key={subject.id} className="hover:bg-black/[.02] dark:hover:bg-white/[.02]">
-            <td className="px-4 py-3 text-[13px] font-medium text-[#6366f1]">{subject.code}</td>
-            <td className="px-4 py-3 text-[13px] text-[#18182e] dark:text-[#eeeef8]">{subject.name}</td>
-            <td className="px-4 py-3 text-[13px]">{subject.periodsPerWeek}</td>
-            <td className="px-4 py-3"><Badge type={subject.type === 'พื้นฐาน' ? 'default' : subject.type === 'เพิ่มเติม' ? 'info' : 'warning'}>{subject.type}</Badge></td>
-            <td className="px-4 py-3 text-[13px]">{subject.classroom}</td>
-            <td className="px-4 py-3"><ActionButtons onEdit={() => openModal('subject', subject)} onDelete={() => confirmDeleteAction(subject.id, subject.name, () => handleDelete('subject', subject.id))} /></td>
+      <DataTable headers={['รหัส', 'ชื่อวิชา', 'คาบ/สัปดาห์', 'ประเภท', 'ห้องเรียน', '']} empty={!subjects || subjects.length === 0}>
+        {(subjects || []).map(subject => (
+          <tr key={subject?.id || Math.random()} className="hover:bg-black/[.02] dark:hover:bg-white/[.02]">
+            <td className="px-4 py-3 text-[13px] font-medium text-[#6366f1]">{subject?.code || '-'}</td>
+            <td className="px-4 py-3 text-[13px] text-[#18182e] dark:text-[#eeeef8]">{subject?.name || '-'}</td>
+            <td className="px-4 py-3 text-[13px]">{subject?.periodsPerWeek || '-'}</td>
+            <td className="px-4 py-3"><Badge type={subject?.type === 'พื้นฐาน' ? 'default' : subject?.type === 'เพิ่มเติม' ? 'info' : 'warning'}>{subject?.type || 'พื้นฐาน'}</Badge></td>
+            <td className="px-4 py-3 text-[13px]">{subject?.classroom || '-'}</td>
+            <td className="px-4 py-3"><ActionButtons onEdit={() => subject && openModal('subject', subject)} onDelete={() => subject?.id && confirmDeleteAction(subject.id, subject.name, () => handleDelete('subject', subject.id))} /></td>
           </tr>
         ))}
       </DataTable>
@@ -1050,14 +1073,14 @@ export default function SchoolTimetableSystem() {
   const renderTeachers = () => (
     <div>
       <CrudHeader title="ครูผู้สอน" icon={GraduationCap} onAdd={() => openModal('teacher')} />
-      <DataTable headers={['คำนำหน้า', 'ชื่อ', 'นามสกุล', 'กลุ่มสาระ', '']} empty={teachers.length === 0}>
-        {teachers.map(teacher => (
-          <tr key={teacher.id} className="hover:bg-black/[.02] dark:hover:bg-white/[.02]">
-            <td className="px-4 py-3 text-[13px]">{teacher.prefix}</td>
-            <td className="px-4 py-3 text-[13px] text-[#18182e] dark:text-[#eeeef8]">{teacher.firstName}</td>
-            <td className="px-4 py-3 text-[13px] text-[#18182e] dark:text-[#eeeef8]">{teacher.lastName}</td>
-            <td className="px-4 py-3 text-[13px] text-[#55557a] dark:text-[#8888aa]">{teacher.department}</td>
-            <td className="px-4 py-3"><ActionButtons onEdit={() => openModal('teacher', teacher)} onDelete={() => confirmDeleteAction(teacher.id, `${teacher.firstName} ${teacher.lastName}`, () => handleDelete('teacher', teacher.id))} /></td>
+      <DataTable headers={['คำนำหน้า', 'ชื่อ', 'นามสกุล', 'กลุ่มสาระ', '']} empty={!teachers || teachers.length === 0}>
+        {(teachers || []).map(teacher => (
+          <tr key={teacher?.id || Math.random()} className="hover:bg-black/[.02] dark:hover:bg-white/[.02]">
+            <td className="px-4 py-3 text-[13px]">{teacher?.prefix || '-'}</td>
+            <td className="px-4 py-3 text-[13px] text-[#18182e] dark:text-[#eeeef8]">{teacher?.firstName || '-'}</td>
+            <td className="px-4 py-3 text-[13px] text-[#18182e] dark:text-[#eeeef8]">{teacher?.lastName || '-'}</td>
+            <td className="px-4 py-3 text-[13px] text-[#55557a] dark:text-[#8888aa]">{teacher?.department || '-'}</td>
+            <td className="px-4 py-3"><ActionButtons onEdit={() => teacher && openModal('teacher', teacher)} onDelete={() => teacher?.id && confirmDeleteAction(teacher.id, `${teacher.firstName} ${teacher.lastName}`, () => handleDelete('teacher', teacher.id))} /></td>
           </tr>
         ))}
       </DataTable>
@@ -1067,14 +1090,14 @@ export default function SchoolTimetableSystem() {
   const renderAssignments = () => (
     <div>
       <CrudHeader title="จัดครูผู้สอน" icon={Users} onAdd={() => openModal('assignment')} />
-      <DataTable headers={['ครูผู้สอน', 'วิชา', 'ห้องเรียน', 'ปีการศึกษา', '']} empty={assignments.length === 0}>
-        {assignments.map(assignment => (
-          <tr key={assignment.id} className="hover:bg-black/[.02] dark:hover:bg-white/[.02]">
-            <td className="px-4 py-3 text-[13px] text-[#18182e] dark:text-[#eeeef8]">{assignment.teacherPrefix}{assignment.teacherFirstName} {assignment.teacherLastName}</td>
-            <td className="px-4 py-3 text-[13px]"><span className="text-[#6366f1]">{assignment.subjectCode}</span> {assignment.subjectName}</td>
-            <td className="px-4 py-3 text-[13px]">{assignment.classroom}</td>
-            <td className="px-4 py-3 text-[13px] text-[#55557a] dark:text-[#8888aa]">{academicYears.find(y => y.id === assignment.academicYearId)?.year || '-'}</td>
-            <td className="px-4 py-3"><ActionButtons onEdit={() => openModal('assignment', assignment)} onDelete={() => confirmDeleteAction(assignment.id, 'รายการนี้', () => handleDelete('assignment', assignment.id))} /></td>
+      <DataTable headers={['ครูผู้สอน', 'วิชา', 'ห้องเรียน', 'ปีการศึกษา', '']} empty={!assignments || assignments.length === 0}>
+        {(assignments || []).map(assignment => (
+          <tr key={assignment?.id || Math.random()} className="hover:bg-black/[.02] dark:hover:bg-white/[.02]">
+            <td className="px-4 py-3 text-[13px] text-[#18182e] dark:text-[#eeeef8]">{assignment?.teacherPrefix || ''}{assignment?.teacherFirstName || ''} {assignment?.teacherLastName || ''}</td>
+            <td className="px-4 py-3 text-[13px]"><span className="text-[#6366f1]">{assignment?.subjectCode || '-'}</span> {assignment?.subjectName || ''}</td>
+            <td className="px-4 py-3 text-[13px]">{assignment?.classroom || '-'}</td>
+            <td className="px-4 py-3 text-[13px] text-[#55557a] dark:text-[#8888aa]">{(academicYears || []).find(y => y?.id === assignment?.academicYearId)?.year || '-'}</td>
+            <td className="px-4 py-3"><ActionButtons onEdit={() => assignment && openModal('assignment', assignment)} onDelete={() => assignment?.id && confirmDeleteAction(assignment.id, 'รายการนี้', () => handleDelete('assignment', assignment.id))} /></td>
           </tr>
         ))}
       </DataTable>
@@ -1083,13 +1106,13 @@ export default function SchoolTimetableSystem() {
   
   const renderTimetableBuilder = () => {
     const days = ['จันทร์', 'อังคาร', 'พุธ', 'พฤหัสบดี', 'ศุกร์']
-    const activePeriods = periods.filter(p => p.isActive).sort((a, b) => a.periodNumber - b.periodNumber)
-    const classrooms = [...new Set(subjects.map(s => s.classroom).filter(Boolean))]
+    const activePeriods = (periods || []).filter(p => p?.isActive).sort((a, b) => (a?.periodNumber || 0) - (b?.periodNumber || 0))
+    const classrooms = [...new Set((subjects || []).map(s => s?.classroom).filter(Boolean))]
     
     if (!selectedClass && classrooms.length > 0) setSelectedClass(classrooms[0])
-    if (!selectedYear && academicYears.length > 0) setSelectedYear(academicYears.find(y => y.isActive)?.id || academicYears[0]?.id)
+    if (!selectedYear && (academicYears || []).length > 0) setSelectedYear((academicYears || []).find(y => y?.isActive)?.id || academicYears[0]?.id)
     
-    const getSlot = (day, period) => timetable.find(t => t.day === day && t.period === period.periodNumber && t.classroom === selectedClass && t.academicYearId === selectedYear)
+    const getSlot = (day, period) => (timetable || []).find(t => t?.day === day && t?.period === period?.periodNumber && t?.classroom === selectedClass && t?.academicYearId === selectedYear)
     
     const updateSlot = async (day, period, subjectId, teacherId) => {
       const existing = getSlot(day, period)
@@ -1107,13 +1130,15 @@ export default function SchoolTimetableSystem() {
           <div className="flex items-center gap-2">
             <label className="text-[13px] text-[#55557a] dark:text-[#8888aa]">ห้องเรียน:</label>
             <select value={selectedClass} onChange={e => setSelectedClass(e.target.value)} className={fieldInputCls}>
+              {classrooms.length === 0 && <option value="">ไม่มีห้องเรียน</option>}
               {classrooms.map(c => <option key={c} value={c}>{c}</option>)}
             </select>
           </div>
           <div className="flex items-center gap-2">
             <label className="text-[13px] text-[#55557a] dark:text-[#8888aa]">ปีการศึกษา:</label>
             <select value={selectedYear} onChange={e => setSelectedYear(e.target.value)} className={fieldInputCls}>
-              {academicYears.map(y => <option key={y.id} value={y.id}>{y.year}/{y.semester}</option>)}
+              {(academicYears || []).length === 0 && <option value="">ไม่มีปีการศึกษา</option>}
+              {(academicYears || []).map(y => <option key={y?.id} value={y?.id}>{y?.year}/{y?.semester}</option>)}
             </select>
           </div>
         </div>
@@ -1123,25 +1148,26 @@ export default function SchoolTimetableSystem() {
             <thead className="bg-black/[.03] dark:bg-white/[.03]">
               <tr>
                 <th className="px-3 py-3 text-[11px] font-semibold text-[#55557a] dark:text-[#8888aa]">วัน / คาบ</th>
-                {activePeriods.map(p => <th key={p.id} className="px-3 py-3 text-[11px] font-semibold text-[#55557a] dark:text-[#8888aa]">{p.periodNumber}<br/><span className="font-normal">{p.startTime}-{p.endTime}</span></th>)}
+                {activePeriods.map(p => <th key={p?.id || Math.random()} className="px-3 py-3 text-[11px] font-semibold text-[#55557a] dark:text-[#8888aa]">{p?.periodNumber || '-'}<br/><span className="font-normal">{p?.startTime || '--:--'}-{p?.endTime || '--:--'}</span></th>)}
               </tr>
             </thead>
             <tbody className="divide-y divide-black/[.06] dark:divide-white/[.06]">
               {days.map(day => (
                 <tr key={day}>
                   <td className="px-3 py-3 text-[13px] font-medium text-[#18182e] dark:text-[#eeeef8] bg-black/[.02] dark:bg-white/[.02]">{day}</td>
-                  {activePeriods.map(period => {
+                  {(activePeriods || []).map(period => {
                     const slot = getSlot(day, period)
-                    const availableAssignments = assignments.filter(a => a.classroom === selectedClass && a.academicYearId === selectedYear)
+                    const availableAssignments = (assignments || []).filter(a => a?.classroom === selectedClass && a?.academicYearId === selectedYear)
                     return (
                       <td key={`${day}-${period.periodNumber}`} className="px-2 py-2">
                         <select value={slot?.subjectId || ''} onChange={e => {
                           const subjectId = e.target.value
-                          const assignment = availableAssignments.find(a => a.subjectId === subjectId)
+                          const assignment = availableAssignments.find(a => a?.subjectId === subjectId)
                           updateSlot(day, period, subjectId, assignment?.teacherId || null)
                         }} className="w-full text-[11px] p-2 rounded-lg border border-black/[.1] dark:border-white/[.1] bg-transparent">
                           <option value="">-</option>
-                          {availableAssignments.map(a => <option key={a.subjectId} value={a.subjectId}>{a.subjectCode}</option>)}
+                          {availableAssignments.length === 0 && <option value="" disabled>ไม่มีวิชาในห้องนี้</option>}
+                          {availableAssignments.map(a => <option key={a?.subjectId} value={a?.subjectId}>{a?.subjectCode || '-'}</option>)}
                         </select>
                         {slot && <p className="text-[10px] text-[#9999b8] mt-1 truncate">{slot.teacherPrefix}{slot.teacherFirstName}</p>}
                       </td>
