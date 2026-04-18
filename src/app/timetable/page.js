@@ -812,7 +812,83 @@ export default function SchoolTimetableSystem() {
     </div>
   )
   
-  // Render other sections... (simplified for brevity)
+  // ─── SAVE HANDLERS ─────────────────────────────────────────────────────────
+  const saveSchoolInfo = async () => {
+    try {
+      const res = await fetch('/api/school-info', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(schoolInfo)
+      })
+      const data = await res.json()
+      if (data.success) {
+        fireToast('success', 'บันทึกข้อมูลเรียบร้อย')
+      } else {
+        fireToast('error', data.error || 'เกิดข้อผิดพลาด')
+      }
+    } catch (error) {
+      fireToast('error', 'เกิดข้อผิดพลาดในการบันทึก')
+    }
+  }
+  
+  const handleSave = async (type, item, isEdit = false) => {
+    try {
+      const endpoints = {
+        academicYear: '/api/academic-years',
+        admin: '/api/administrators',
+        period: '/api/periods',
+        subject: '/api/subjects',
+        teacher: '/api/teachers',
+        assignment: '/api/assignments'
+      }
+      
+      const method = isEdit ? 'PUT' : 'POST'
+      const url = endpoints[type]
+      
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(item)
+      })
+      
+      const data = await res.json()
+      if (data.success) {
+        fireToast('success', data.message || 'บันทึกเรียบร้อย')
+        loadAllData()
+        closeModal()
+      } else {
+        fireToast('error', data.error || 'เกิดข้อผิดพลาด')
+      }
+    } catch (error) {
+      fireToast('error', 'เกิดข้อผิดพลาดในการบันทึก')
+    }
+  }
+  
+  const handleDelete = async (type, id) => {
+    try {
+      const endpoints = {
+        academicYear: '/api/academic-years',
+        admin: '/api/administrators',
+        subject: '/api/subjects',
+        teacher: '/api/teachers',
+        assignment: '/api/assignments'
+      }
+      
+      const res = await fetch(`${endpoints[type]}?id=${id}`, { method: 'DELETE' })
+      const data = await res.json()
+      
+      if (data.success) {
+        fireToast('success', data.message || 'ลบเรียบร้อย')
+        loadAllData()
+      } else {
+        fireToast('error', data.error || 'เกิดข้อผิดพลาด')
+      }
+    } catch (error) {
+      fireToast('error', 'เกิดข้อผิดพลาดในการลบ')
+    }
+  }
+  
+  // ─── RENDER SECTIONS ───────────────────────────────────────────────────────
   const renderSchoolInfo = () => (
     <div className="max-w-2xl">
       <div className="rounded-2xl border border-black/[.08] dark:border-white/[.07] bg-white dark:bg-[#121221] p-6">
@@ -820,33 +896,346 @@ export default function SchoolTimetableSystem() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="sm:col-span-2">
             <label className={fieldLabelCls}><Building2 size={12} />ชื่อโรงเรียน</label>
-            <input type="text" value={schoolInfo.schoolName} onChange={e => setSchoolInfo({...schoolInfo, schoolName: e.target.value})} className={fieldInputCls} />
+            <input type="text" value={schoolInfo.schoolName || ''} onChange={e => setSchoolInfo({...schoolInfo, schoolName: e.target.value})} className={fieldInputCls} />
           </div>
           <div className="sm:col-span-2">
             <label className={fieldLabelCls}><School size={12} />สังกัด</label>
-            <input type="text" value={schoolInfo.affiliation} onChange={e => setSchoolInfo({...schoolInfo, affiliation: e.target.value})} className={fieldInputCls} />
+            <input type="text" value={schoolInfo.affiliation || ''} onChange={e => setSchoolInfo({...schoolInfo, affiliation: e.target.value})} className={fieldInputCls} />
           </div>
           <div>
             <label className={fieldLabelCls}><MapPin size={12} />ที่อยู่</label>
-            <input type="text" value={schoolInfo.address} onChange={e => setSchoolInfo({...schoolInfo, address: e.target.value})} className={fieldInputCls} />
+            <input type="text" value={schoolInfo.address || ''} onChange={e => setSchoolInfo({...schoolInfo, address: e.target.value})} className={fieldInputCls} />
           </div>
           <div>
             <label className={fieldLabelCls}><Phone size={12} />โทรศัพท์</label>
-            <input type="text" value={schoolInfo.phone} onChange={e => setSchoolInfo({...schoolInfo, phone: e.target.value})} className={fieldInputCls} />
+            <input type="text" value={schoolInfo.phone || ''} onChange={e => setSchoolInfo({...schoolInfo, phone: e.target.value})} className={fieldInputCls} />
           </div>
           <div className="sm:col-span-2">
             <label className={fieldLabelCls}><Mail size={12} />อีเมล</label>
-            <input type="email" value={schoolInfo.email} onChange={e => setSchoolInfo({...schoolInfo, email: e.target.value})} className={fieldInputCls} />
+            <input type="email" value={schoolInfo.email || ''} onChange={e => setSchoolInfo({...schoolInfo, email: e.target.value})} className={fieldInputCls} />
           </div>
         </div>
         <div className="mt-6">
-          <button onClick={() => fireToast('success', 'บันทึกข้อมูลเรียบร้อย')} className={btnPrimaryCls}>
+          <button onClick={saveSchoolInfo} className={btnPrimaryCls}>
             <Save size={14} /> บันทึกข้อมูล
           </button>
         </div>
       </div>
     </div>
   )
+  
+  // ─── REUSABLE CRUD COMPONENTS ──────────────────────────────────────────────
+  const CrudHeader = ({ title, icon: Icon, onAdd }) => (
+    <div className="flex items-center justify-between mb-6">
+      <h2 className="text-lg font-semibold text-[#18182e] dark:text-[#eeeef8] flex items-center gap-2">
+        <Icon size={18} className="text-[#6366f1]" /> {title}
+      </h2>
+      <button onClick={onAdd} className={btnPrimaryCls}>
+        <Plus size={14} /> เพิ่ม
+      </button>
+    </div>
+  )
+  
+  const DataTable = ({ headers, children, empty }) => (
+    <div className="rounded-2xl border border-black/[.08] dark:border-white/[.07] bg-white dark:bg-[#121221] overflow-hidden">
+      <div className="overflow-x-auto">
+        <table className="w-full">
+          <thead className="bg-black/[.03] dark:bg-white/[.03]">
+            <tr>{headers.map((h, i) => <th key={i} className="px-4 py-3 text-left text-[11px] font-semibold text-[#55557a] dark:text-[#8888aa] uppercase tracking-wider">{h}</th>)}</tr>
+          </thead>
+          <tbody className="divide-y divide-black/[.06] dark:divide-white/[.06]">{children}</tbody>
+        </table>
+      </div>
+      {empty && <div className="p-8 text-center text-[#9999b8] dark:text-[#55556a]">ไม่มีข้อมูล</div>}
+    </div>
+  )
+  
+  const ActionButtons = ({ onEdit, onDelete }) => (
+    <div className="flex gap-1">
+      <button onClick={onEdit} className="p-1.5 rounded-lg hover:bg-black/[.05] dark:hover:bg-white/[.05] text-blue-500"><Edit2 size={14} /></button>
+      <button onClick={onDelete} className="p-1.5 rounded-lg hover:bg-black/[.05] dark:hover:bg-white/[.05] text-red-500"><Trash2 size={14} /></button>
+    </div>
+  )
+  
+  const renderAcademicYears = () => (
+    <div>
+      <CrudHeader title="ปีการศึกษา" icon={Calendar} onAdd={() => openModal('academicYear')} />
+      <DataTable headers={['ปี', 'ภาคเรียน', 'เริ่ม', 'สิ้นสุด', 'ใช้งาน', '']} empty={academicYears.length === 0}>
+        {academicYears.map(year => (
+          <tr key={year.id} className="hover:bg-black/[.02] dark:hover:bg-white/[.02]">
+            <td className="px-4 py-3 text-[13px] text-[#18182e] dark:text-[#eeeef8]">{year.year}</td>
+            <td className="px-4 py-3 text-[13px]">{year.semester}</td>
+            <td className="px-4 py-3 text-[13px] text-[#55557a] dark:text-[#8888aa]">{year.startDate}</td>
+            <td className="px-4 py-3 text-[13px] text-[#55557a] dark:text-[#8888aa]">{year.endDate}</td>
+            <td className="px-4 py-3">{year.isActive ? <Badge type="success">ใช้งาน</Badge> : <Badge>ไม่ใช้</Badge>}</td>
+            <td className="px-4 py-3"><ActionButtons onEdit={() => openModal('academicYear', year)} onDelete={() => confirmDeleteAction(year.id, `${year.year}/${year.semester}`, () => handleDelete('academicYear', year.id))} /></td>
+          </tr>
+        ))}
+      </DataTable>
+    </div>
+  )
+  
+  const renderAdmins = () => (
+    <div>
+      <CrudHeader title="ผู้บริหาร" icon={UserCog} onAdd={() => openModal('admin')} />
+      <DataTable headers={['คำนำหน้า', 'ชื่อ', 'นามสกุล', 'ตำแหน่ง', '']} empty={admins.length === 0}>
+        {admins.map(admin => (
+          <tr key={admin.id} className="hover:bg-black/[.02] dark:hover:bg-white/[.02]">
+            <td className="px-4 py-3 text-[13px]">{admin.title}</td>
+            <td className="px-4 py-3 text-[13px] text-[#18182e] dark:text-[#eeeef8]">{admin.firstName}</td>
+            <td className="px-4 py-3 text-[13px] text-[#18182e] dark:text-[#eeeef8]">{admin.lastName}</td>
+            <td className="px-4 py-3 text-[13px] text-[#55557a] dark:text-[#8888aa]">{admin.position}</td>
+            <td className="px-4 py-3"><ActionButtons onEdit={() => openModal('admin', admin)} onDelete={() => confirmDeleteAction(admin.id, `${admin.title}${admin.firstName}`, () => handleDelete('admin', admin.id))} /></td>
+          </tr>
+        ))}
+      </DataTable>
+    </div>
+  )
+  
+  const renderPeriods = () => {
+    const savePeriods = async () => {
+      const data = periods.map(p => ({ id: p.id, periodNumber: p.periodNumber, startTime: p.startTime, endTime: p.endTime, isActive: p.isActive, label: p.label }))
+      await handleSave('period', { periods: data })
+    }
+    return (
+      <div>
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-lg font-semibold text-[#18182e] dark:text-[#eeeef8] flex items-center gap-2"><Clock size={18} className="text-[#6366f1]" /> กำหนดเวลาเรียน</h2>
+          <button onClick={savePeriods} className={btnPrimaryCls}><Save size={14} /> บันทึก</button>
+        </div>
+        <DataTable headers={['คาบ', 'เวลาเริ่ม', 'เวลาจบ', 'สถานะ', '']} empty={periods.length === 0}>
+          {periods.map((period, idx) => (
+            <tr key={period.id} className="hover:bg-black/[.02] dark:hover:bg-white/[.02]">
+              <td className="px-4 py-3 text-[13px] text-[#18182e] dark:text-[#eeeef8]">คาบ {period.periodNumber}</td>
+              <td className="px-4 py-3"><input type="time" value={period.startTime} onChange={e => { const newPeriods = [...periods]; newPeriods[idx].startTime = e.target.value; setPeriods(newPeriods); }} className={fieldInputCls} /></td>
+              <td className="px-4 py-3"><input type="time" value={period.endTime} onChange={e => { const newPeriods = [...periods]; newPeriods[idx].endTime = e.target.value; setPeriods(newPeriods); }} className={fieldInputCls} /></td>
+              <td className="px-4 py-3"><input type="checkbox" checked={period.isActive} onChange={e => { const newPeriods = [...periods]; newPeriods[idx].isActive = e.target.checked; setPeriods(newPeriods); }} /></td>
+              <td className="px-4 py-3"><button onClick={() => { const newPeriods = periods.filter((_, i) => i !== idx); setPeriods(newPeriods); }} className="p-1.5 rounded-lg hover:bg-red-500/10 text-red-500"><Trash2 size={14} /></button></td>
+            </tr>
+          ))}
+        </DataTable>
+        <button onClick={() => setPeriods([...periods, { id: crypto.randomUUID(), periodNumber: periods.length + 1, startTime: '08:00', endTime: '09:00', isActive: true }])} className={`${btnSecondaryCls} mt-4`}><Plus size={14} /> เพิ่มคาบ</button>
+      </div>
+    )
+  }
+  
+  const renderSubjects = () => (
+    <div>
+      <CrudHeader title="รายวิชา" icon={BookOpen} onAdd={() => openModal('subject')} />
+      <DataTable headers={['รหัส', 'ชื่อวิชา', 'คาบ/สัปดาห์', 'ประเภท', 'ห้องเรียน', '']} empty={subjects.length === 0}>
+        {subjects.map(subject => (
+          <tr key={subject.id} className="hover:bg-black/[.02] dark:hover:bg-white/[.02]">
+            <td className="px-4 py-3 text-[13px] font-medium text-[#6366f1]">{subject.code}</td>
+            <td className="px-4 py-3 text-[13px] text-[#18182e] dark:text-[#eeeef8]">{subject.name}</td>
+            <td className="px-4 py-3 text-[13px]">{subject.periodsPerWeek}</td>
+            <td className="px-4 py-3"><Badge type={subject.type === 'พื้นฐาน' ? 'default' : subject.type === 'เพิ่มเติม' ? 'info' : 'warning'}>{subject.type}</Badge></td>
+            <td className="px-4 py-3 text-[13px]">{subject.classroom}</td>
+            <td className="px-4 py-3"><ActionButtons onEdit={() => openModal('subject', subject)} onDelete={() => confirmDeleteAction(subject.id, subject.name, () => handleDelete('subject', subject.id))} /></td>
+          </tr>
+        ))}
+      </DataTable>
+    </div>
+  )
+  
+  const renderTeachers = () => (
+    <div>
+      <CrudHeader title="ครูผู้สอน" icon={GraduationCap} onAdd={() => openModal('teacher')} />
+      <DataTable headers={['คำนำหน้า', 'ชื่อ', 'นามสกุล', 'กลุ่มสาระ', '']} empty={teachers.length === 0}>
+        {teachers.map(teacher => (
+          <tr key={teacher.id} className="hover:bg-black/[.02] dark:hover:bg-white/[.02]">
+            <td className="px-4 py-3 text-[13px]">{teacher.prefix}</td>
+            <td className="px-4 py-3 text-[13px] text-[#18182e] dark:text-[#eeeef8]">{teacher.firstName}</td>
+            <td className="px-4 py-3 text-[13px] text-[#18182e] dark:text-[#eeeef8]">{teacher.lastName}</td>
+            <td className="px-4 py-3 text-[13px] text-[#55557a] dark:text-[#8888aa]">{teacher.department}</td>
+            <td className="px-4 py-3"><ActionButtons onEdit={() => openModal('teacher', teacher)} onDelete={() => confirmDeleteAction(teacher.id, `${teacher.firstName} ${teacher.lastName}`, () => handleDelete('teacher', teacher.id))} /></td>
+          </tr>
+        ))}
+      </DataTable>
+    </div>
+  )
+  
+  const renderAssignments = () => (
+    <div>
+      <CrudHeader title="จัดครูผู้สอน" icon={Users} onAdd={() => openModal('assignment')} />
+      <DataTable headers={['ครูผู้สอน', 'วิชา', 'ห้องเรียน', 'ปีการศึกษา', '']} empty={assignments.length === 0}>
+        {assignments.map(assignment => (
+          <tr key={assignment.id} className="hover:bg-black/[.02] dark:hover:bg-white/[.02]">
+            <td className="px-4 py-3 text-[13px] text-[#18182e] dark:text-[#eeeef8]">{assignment.teacherPrefix}{assignment.teacherFirstName} {assignment.teacherLastName}</td>
+            <td className="px-4 py-3 text-[13px]"><span className="text-[#6366f1]">{assignment.subjectCode}</span> {assignment.subjectName}</td>
+            <td className="px-4 py-3 text-[13px]">{assignment.classroom}</td>
+            <td className="px-4 py-3 text-[13px] text-[#55557a] dark:text-[#8888aa]">{academicYears.find(y => y.id === assignment.academicYearId)?.year || '-'}</td>
+            <td className="px-4 py-3"><ActionButtons onEdit={() => openModal('assignment', assignment)} onDelete={() => confirmDeleteAction(assignment.id, 'รายการนี้', () => handleDelete('assignment', assignment.id))} /></td>
+          </tr>
+        ))}
+      </DataTable>
+    </div>
+  )
+  
+  const renderTimetableBuilder = () => {
+    const days = ['จันทร์', 'อังคาร', 'พุธ', 'พฤหัสบดี', 'ศุกร์']
+    const activePeriods = periods.filter(p => p.isActive).sort((a, b) => a.periodNumber - b.periodNumber)
+    const classrooms = [...new Set(subjects.map(s => s.classroom).filter(Boolean))]
+    
+    if (!selectedClass && classrooms.length > 0) setSelectedClass(classrooms[0])
+    if (!selectedYear && academicYears.length > 0) setSelectedYear(academicYears.find(y => y.isActive)?.id || academicYears[0]?.id)
+    
+    const getSlot = (day, period) => timetable.find(t => t.day === day && t.period === period.periodNumber && t.classroom === selectedClass && t.academicYearId === selectedYear)
+    
+    const updateSlot = async (day, period, subjectId, teacherId) => {
+      const existing = getSlot(day, period)
+      if (existing) {
+        await fetch('/api/timetable', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ day, period: period.periodNumber, subjectId, teacherId, classroom: selectedClass, academicYearId: selectedYear }) })
+      } else {
+        await fetch('/api/timetable', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ day, period: period.periodNumber, subjectId, teacherId, classroom: selectedClass, academicYearId: selectedYear }) })
+      }
+      loadTimetable()
+    }
+    
+    return (
+      <div>
+        <div className="flex flex-wrap items-center gap-4 mb-6">
+          <div className="flex items-center gap-2">
+            <label className="text-[13px] text-[#55557a] dark:text-[#8888aa]">ห้องเรียน:</label>
+            <select value={selectedClass} onChange={e => setSelectedClass(e.target.value)} className={fieldInputCls}>
+              {classrooms.map(c => <option key={c} value={c}>{c}</option>)}
+            </select>
+          </div>
+          <div className="flex items-center gap-2">
+            <label className="text-[13px] text-[#55557a] dark:text-[#8888aa]">ปีการศึกษา:</label>
+            <select value={selectedYear} onChange={e => setSelectedYear(e.target.value)} className={fieldInputCls}>
+              {academicYears.map(y => <option key={y.id} value={y.id}>{y.year}/{y.semester}</option>)}
+            </select>
+          </div>
+        </div>
+        
+        <div className="rounded-2xl border border-black/[.08] dark:border-white/[.07] bg-white dark:bg-[#121221] overflow-auto">
+          <table className="w-full min-w-[800px]">
+            <thead className="bg-black/[.03] dark:bg-white/[.03]">
+              <tr>
+                <th className="px-3 py-3 text-[11px] font-semibold text-[#55557a] dark:text-[#8888aa]">วัน / คาบ</th>
+                {activePeriods.map(p => <th key={p.id} className="px-3 py-3 text-[11px] font-semibold text-[#55557a] dark:text-[#8888aa]">{p.periodNumber}<br/><span className="font-normal">{p.startTime}-{p.endTime}</span></th>)}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-black/[.06] dark:divide-white/[.06]">
+              {days.map(day => (
+                <tr key={day}>
+                  <td className="px-3 py-3 text-[13px] font-medium text-[#18182e] dark:text-[#eeeef8] bg-black/[.02] dark:bg-white/[.02]">{day}</td>
+                  {activePeriods.map(period => {
+                    const slot = getSlot(day, period)
+                    const availableAssignments = assignments.filter(a => a.classroom === selectedClass && a.academicYearId === selectedYear)
+                    return (
+                      <td key={`${day}-${period.periodNumber}`} className="px-2 py-2">
+                        <select value={slot?.subjectId || ''} onChange={e => {
+                          const subjectId = e.target.value
+                          const assignment = availableAssignments.find(a => a.subjectId === subjectId)
+                          updateSlot(day, period, subjectId, assignment?.teacherId || null)
+                        }} className="w-full text-[11px] p-2 rounded-lg border border-black/[.1] dark:border-white/[.1] bg-transparent">
+                          <option value="">-</option>
+                          {availableAssignments.map(a => <option key={a.subjectId} value={a.subjectId}>{a.subjectCode}</option>)}
+                        </select>
+                        {slot && <p className="text-[10px] text-[#9999b8] mt-1 truncate">{slot.teacherPrefix}{slot.teacherFirstName}</p>}
+                      </td>
+                    )
+                  })}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    )
+  }
+  
+  const renderTimetableView = () => (
+    <div>
+      <div className="flex items-center gap-4 mb-6">
+        <button onClick={() => setViewMode('class')} className={`px-4 py-2 rounded-lg text-[13px] font-medium ${viewMode === 'class' ? 'bg-[#6366f1] text-white' : 'bg-black/[.05] dark:bg-white/[.05] text-[#55557a] dark:text-[#8888aa]'}`}>ตามห้องเรียน</button>
+        <button onClick={() => setViewMode('teacher')} className={`px-4 py-2 rounded-lg text-[13px] font-medium ${viewMode === 'teacher' ? 'bg-[#6366f1] text-white' : 'bg-black/[.05] dark:bg-white/[.05] text-[#55557a] dark:text-[#8888aa]'}`}>ตามครู</button>
+      </div>
+      <div className="p-8 text-center text-[#9999b8] dark:text-[#55556a]">
+        <Eye size={48} className="mx-auto mb-4 opacity-50" />
+        <p>ฟีเจอร์ดู/พิมพ์ตารางเรียนกำลังพัฒนา</p>
+      </div>
+    </div>
+  )
+  
+  // ─── MODAL FORMS ─────────────────────────────────────────────────────────────
+  const renderModalForm = () => {
+    const [formData, setFormData] = useState(editingItem || {})
+    
+    const submitForm = () => {
+      const typeMap = { academicYear: 'academicYear', admin: 'admin', subject: 'subject', teacher: 'teacher', assignment: 'assignment' }
+      handleSave(typeMap[modalType], formData, !!editingItem)
+    }
+    
+    const forms = {
+      academicYear: (
+        <div className="space-y-4">
+          <div><label className={fieldLabelCls}>ปีการศึกษา (พ.ศ.)</label><input type="number" value={formData.year || ''} onChange={e => setFormData({...formData, year: parseInt(e.target.value)})} className={fieldInputCls} /></div>
+          <div><label className={fieldLabelCls}>ภาคเรียน</label><select value={formData.semester || 1} onChange={e => setFormData({...formData, semester: parseInt(e.target.value)})} className={fieldInputCls}><option value={1}>1</option><option value={2}>2</option><option value={3}>3</option></select></div>
+          <div className="grid grid-cols-2 gap-4">
+            <div><label className={fieldLabelCls}>วันเริ่ม</label><input type="date" value={formData.startDate || ''} onChange={e => setFormData({...formData, startDate: e.target.value})} className={fieldInputCls} /></div>
+            <div><label className={fieldLabelCls}>วันสิ้นสุด</label><input type="date" value={formData.endDate || ''} onChange={e => setFormData({...formData, endDate: e.target.value})} className={fieldInputCls} /></div>
+          </div>
+          <div className="flex items-center gap-2"><input type="checkbox" checked={formData.isActive || false} onChange={e => setFormData({...formData, isActive: e.target.checked})} id="isActive" /><label htmlFor="isActive" className="text-[13px] text-[#55557a] dark:text-[#8888aa]">ใช้งานปีการศึกษานี้</label></div>
+        </div>
+      ),
+      admin: (
+        <div className="space-y-4">
+          <div><label className={fieldLabelCls}>คำนำหน้า</label><input type="text" value={formData.title || ''} onChange={e => setFormData({...formData, title: e.target.value})} className={fieldInputCls} placeholder="นาย, นาง, นางสาว" /></div>
+          <div className="grid grid-cols-2 gap-4">
+            <div><label className={fieldLabelCls}>ชื่อ</label><input type="text" value={formData.firstName || ''} onChange={e => setFormData({...formData, firstName: e.target.value})} className={fieldInputCls} /></div>
+            <div><label className={fieldLabelCls}>นามสกุล</label><input type="text" value={formData.lastName || ''} onChange={e => setFormData({...formData, lastName: e.target.value})} className={fieldInputCls} /></div>
+          </div>
+          <div><label className={fieldLabelCls}>ตำแหน่ง</label><input type="text" value={formData.position || ''} onChange={e => setFormData({...formData, position: e.target.value})} className={fieldInputCls} placeholder="ผู้อำนวยการ, รองผู้อำนวยการ" /></div>
+        </div>
+      ),
+      subject: (
+        <div className="space-y-4">
+          <div><label className={fieldLabelCls}>รหัสวิชา</label><input type="text" value={formData.code || ''} onChange={e => setFormData({...formData, code: e.target.value})} className={fieldInputCls} /></div>
+          <div><label className={fieldLabelCls}>ชื่อวิชา</label><input type="text" value={formData.name || ''} onChange={e => setFormData({...formData, name: e.target.value})} className={fieldInputCls} /></div>
+          <div className="grid grid-cols-2 gap-4">
+            <div><label className={fieldLabelCls}>จำนวนคาบ/สัปดาห์</label><input type="number" value={formData.periodsPerWeek || 1} onChange={e => setFormData({...formData, periodsPerWeek: parseInt(e.target.value)})} className={fieldInputCls} min={1} /></div>
+            <div><label className={fieldLabelCls}>ห้องเรียน</label><input type="text" value={formData.classroom || ''} onChange={e => setFormData({...formData, classroom: e.target.value})} className={fieldInputCls} placeholder="ม.1/1" /></div>
+          </div>
+          <div><label className={fieldLabelCls}>ประเภท</label><select value={formData.type || 'พื้นฐาน'} onChange={e => setFormData({...formData, type: e.target.value})} className={fieldInputCls}><option value="พื้นฐาน">พื้นฐาน</option><option value="เพิ่มเติม">เพิ่มเติม</option><option value="กิจกรรม">กิจกรรม</option></select></div>
+        </div>
+      ),
+      teacher: (
+        <div className="space-y-4">
+          <div><label className={fieldLabelCls}>คำนำหน้า</label><input type="text" value={formData.prefix || ''} onChange={e => setFormData({...formData, prefix: e.target.value})} className={fieldInputCls} placeholder="นาย, นาง, นางสาว" /></div>
+          <div className="grid grid-cols-2 gap-4">
+            <div><label className={fieldLabelCls}>ชื่อ</label><input type="text" value={formData.firstName || ''} onChange={e => setFormData({...formData, firstName: e.target.value})} className={fieldInputCls} /></div>
+            <div><label className={fieldLabelCls}>นามสกุล</label><input type="text" value={formData.lastName || ''} onChange={e => setFormData({...formData, lastName: e.target.value})} className={fieldInputCls} /></div>
+          </div>
+          <div><label className={fieldLabelCls}>กลุ่มสาระ</label><input type="text" value={formData.department || ''} onChange={e => setFormData({...formData, department: e.target.value})} className={fieldInputCls} placeholder="ภาษาไทย, คณิตศาสตร์" /></div>
+        </div>
+      ),
+      assignment: (
+        <div className="space-y-4">
+          <div><label className={fieldLabelCls}>ครูผู้สอน</label><select value={formData.teacherId || ''} onChange={e => setFormData({...formData, teacherId: e.target.value})} className={fieldInputCls}><option value="">เลือกครู</option>{teachers.map(t => <option key={t.id} value={t.id}>{t.prefix}{t.firstName} {t.lastName}</option>)}</select></div>
+          <div><label className={fieldLabelCls}>รายวิชา</label><select value={formData.subjectId || ''} onChange={e => setFormData({...formData, subjectId: e.target.value})} className={fieldInputCls}><option value="">เลือกวิชา</option>{subjects.map(s => <option key={s.id} value={s.id}>{s.code} - {s.name}</option>)}</select></div>
+          <div><label className={fieldLabelCls}>ห้องเรียน</label><input type="text" value={formData.classroom || ''} onChange={e => setFormData({...formData, classroom: e.target.value})} className={fieldInputCls} placeholder="ม.1/1" /></div>
+          <div><label className={fieldLabelCls}>ปีการศึกษา</label><select value={formData.academicYearId || selectedYear} onChange={e => setFormData({...formData, academicYearId: e.target.value})} className={fieldInputCls}>{academicYears.map(y => <option key={y.id} value={y.id}>{y.year}/{y.semester}</option>)}</select></div>
+        </div>
+      )
+    }
+    
+    const titles = { academicYear: 'ปีการศึกษา', admin: 'ผู้บริหาร', subject: 'รายวิชา', teacher: 'ครูผู้สอน', assignment: 'จัดครูผู้สอน' }
+    const icons = { academicYear: Calendar, admin: UserCog, subject: BookOpen, teacher: GraduationCap, assignment: Users }
+    
+    return (
+      <Modal open={showModal} onClose={closeModal} title={editingItem ? `แก้ไข${titles[modalType]}` : `เพิ่ม${titles[modalType]}`} icon={icons[modalType] || Plus}>
+        <div className="space-y-4">
+          {forms[modalType]}
+          <div className="flex gap-2.5 justify-end pt-4 border-t border-black/[.07] dark:border-white/[.07]">
+            <button onClick={closeModal} className={btnSecondaryCls}>ยกเลิก</button>
+            <button onClick={submitForm} className={btnPrimaryCls}><Save size={14} /> บันทึก</button>
+          </div>
+        </div>
+      </Modal>
+    )
+  }
   
   // ─── MAIN RENDER ───────────────────────────────────────────────────────────
   if (!mounted) {
@@ -939,16 +1328,19 @@ export default function SchoolTimetableSystem() {
         <div className="p-6">
           {activeSection === 'dashboard' && renderDashboard()}
           {activeSection === 'schoolInfo' && renderSchoolInfo()}
-          {/* Other sections would be implemented similarly */}
-          {activeSection !== 'dashboard' && activeSection !== 'schoolInfo' && (
-            <EmptyState 
-              icon={Construction} 
-              title="อยู่ระหว่างพัฒนา" 
-              description="ฟีเจอร์นี้กำลังอยู่ระหว่างการพัฒนา กรุณากลับมาใหม่ภายหลัง"
-            />
-          )}
+          {activeSection === 'academicYears' && renderAcademicYears()}
+          {activeSection === 'admins' && renderAdmins()}
+          {activeSection === 'periods' && renderPeriods()}
+          {activeSection === 'subjects' && renderSubjects()}
+          {activeSection === 'teachers' && renderTeachers()}
+          {activeSection === 'assignments' && renderAssignments()}
+          {activeSection === 'timetableBuilder' && renderTimetableBuilder()}
+          {activeSection === 'timetableView' && renderTimetableView()}
         </div>
       </main>
+      
+      {/* Modal Forms */}
+      {showModal && renderModalForm()}
       
       {/* Confirm Delete Modal */}
       <ConfirmModal 

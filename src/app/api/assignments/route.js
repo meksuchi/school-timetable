@@ -54,6 +54,22 @@ export async function POST(request) {
   }
 }
 
+// PUT /api/assignments
+export async function PUT(request) {
+  try {
+    const { id, teacherId, subjectId, classroom, academicYearId } = await request.json()
+    
+    await query(
+      'UPDATE teacher_assignments SET teacher_id = ?, subject_id = ?, classroom = ?, academic_year_id = ? WHERE id = ?',
+      [teacherId, subjectId, classroom, academicYearId, id]
+    )
+    
+    return NextResponse.json({ success: true, message: 'แก้ไขการจัดครูผู้สอนเรียบร้อย' })
+  } catch (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+}
+
 // DELETE /api/assignments
 export async function DELETE(request) {
   try {
