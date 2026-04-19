@@ -125,6 +125,12 @@ const parseTimeValue = (val) => {
   return String(val).substring(0, 5);
 }
 
+// Helper: ตรวจสอบว่าข้อมูลมีการเปลี่ยนแปลงจริงหรือไม่
+const hasDataChanged = (original, updated, fields) => {
+  if (!original) return true // ถ้าไม่มี original ถือว่ามีการเปลี่ยนแปลง (กรณีสร้างใหม่)
+  return fields.some(field => String(original[field] ?? '') !== String(updated[field] ?? ''))
+}
+
 // =============================================================================
 // REUSABLE UI COMPONENTS
 // =============================================================================
@@ -340,7 +346,14 @@ export default function SchoolTimetableSystem() {
     try {
       const res = await fetch('/api/school-info', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(schoolInfo) })
       const data = await res.json()
-      if (data.success) { showAlert('success', 'สำเร็จ', 'บันทึกข้อมูลโรงเรียนเรียบร้อยแล้ว'); loadAllData(); }
+      if (data.success) { 
+        if (data.changed === false) {
+          // ไม่มีการเปลี่ยนแปลงข้อมูล
+        } else {
+          showAlert('success', 'สำเร็จ', 'บันทึกข้อมูลโรงเรียนเรียบร้อยแล้ว')
+          loadAllData()
+        }
+      }
       else showAlert('error', 'ข้อผิดพลาด', data.error || 'เกิดข้อผิดพลาดในการบันทึก')
     } catch (error) { showAlert('error', 'ข้อผิดพลาด', 'เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์') } finally { setSavingSchoolInfo(false) }
   }
@@ -348,6 +361,24 @@ export default function SchoolTimetableSystem() {
   const handleSave = async (type, item, isEdit = false) => {
     setSaving(true)
     try {
+      // ตรวจสอบว่าข้อมูลมีการเปลี่ยนแปลงจริงหรือไม่ (เฉพาะกรณีแก้ไข)
+      if (isEdit && editingItem) {
+        const changeFields = {
+          academicYear: ['year', 'semester', 'startDate', 'endDate', 'isActive'],
+          admin: ['title', 'firstName', 'lastName', 'position'],
+          subject: ['code', 'name', 'periodsPerWeek', 'type', 'classroom'],
+          teacher: ['prefix', 'firstName', 'lastName', 'department'],
+          assignment: ['teacherId', 'subjectId', 'classroom', 'academicYearId']
+        }
+        const fieldsToCheck = changeFields[type]
+        if (fieldsToCheck && !hasDataChanged(editingItem, item, fieldsToCheck)) {
+          // ไม่มีการเปลี่ยนแปลงข้อมูล ปิด modal โดยไม่แสดง alert
+          closeModal()
+          setSaving(false)
+          return
+        }
+      }
+
       if (type === 'academicYear' && (!item.year || !item.semester)) { showAlert('warning', 'ข้อมูลไม่ครบถ้วน', 'กรุณากรอกปีการศึกษาและภาคเรียนให้ครบถ้วน'); setSaving(false); return; }
       if (type === 'admin' && (!item.title || !item.firstName || !item.lastName)) { showAlert('warning', 'ข้อมูลไม่ครบถ้วน', 'กรุณากรอกข้อมูลผู้บริหารให้ครบถ้วน'); setSaving(false); return; }
       if (type === 'subject' && (!item.code || !item.name)) { showAlert('warning', 'ข้อมูลไม่ครบถ้วน', 'กรุณากรอกรหัสวิชาและชื่อวิชาให้ครบถ้วน'); setSaving(false); return; }
