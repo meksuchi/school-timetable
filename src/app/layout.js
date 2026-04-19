@@ -15,6 +15,24 @@ export default function RootLayout({ children }) {
           href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap"
           rel="stylesheet"
         />
+        {/* Script ป้องกัน FOUC (หน้าจอกระพริบขาวตอนรีเฟรชหน้าเว็บ) */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  var storedTheme = localStorage.getItem('theme');
+                  var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                  if (storedTheme === 'dark' || (!storedTheme && prefersDark)) {
+                    document.documentElement.classList.add('dark');
+                  } else {
+                    document.documentElement.classList.remove('dark');
+                  }
+                } catch (e) {}
+              })();
+            `,
+          }}
+        />
       </head>
       <body className="font-sans antialiased" style={{ fontFamily: 'Kanit, sans-serif' }} suppressHydrationWarning>
         {children}

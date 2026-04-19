@@ -1,7 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef, useMemo } from "react"
-import { motion, AnimatePresence } from "framer-motion"
+import { useState, useEffect, useRef } from "react"
 import Link from "next/link"
 import {
   Plus, RefreshCw, Trash2, Edit2, X,
@@ -18,22 +17,6 @@ import {
   MapPin, Phone, Mail, Image as ImageIcon,
   Menu
 } from "lucide-react"
-
-// =============================================================================
-// SCHOOL TIMETABLE MANAGEMENT SYSTEM
-// Next.js Client Component with MySQL Backend
-// =============================================================================
-
-// =============================================================================
-// CONSTANTS & CONFIGURATION
-// =============================================================================
-
-const DAYS = ['จันทร์', 'อังคาร', 'พุธ', 'พฤหัสบดี', 'ศุกร์']
-const DAY_KEYS = ['mon', 'tue', 'wed', 'thu', 'fri']
-
-const PRESET_COLORS = ["#6366f1", "#8b5cf6", "#ec4899", "#f59e0b", "#10b981", "#3b82f6", "#ef4444", "#14b8a6"]
-
-const DEFAULT_ACADEMIC_YEAR = { year: new Date().getFullYear() + 543, semester: 1 }
 
 // =============================================================================
 // SWEETALERT2 HELPERS
@@ -69,17 +52,6 @@ const getSwalBase = () => {
       }
 }
 
-const getToastPreset = () => {
-  const base = getSwalBase()
-  const isMobile = window.innerWidth < 640
-  return {
-    ...base, toast: true,
-    position: isMobile ? "top" : "top-end",
-    showConfirmButton: false, timer: 2800, timerProgressBar: true,
-    width: isMobile ? "calc(100vw - 24px)" : "340px",
-  }
-}
-
 // =============================================================================
 // MINIMAL CSS
 // =============================================================================
@@ -112,83 +84,41 @@ const minimalCss = `
 
   /* SweetAlert2 base */
   .swal2-ent {
-    border-radius:16px !important;
+    border-radius:20px !important;
     box-shadow:0 32px 80px rgba(0,0,0,.35) !important;
     font-family:'Kanit',sans-serif !important;
     width: min(420px, calc(100vw - 24px)) !important;
-    padding: 20px !important;
+    padding: 24px 20px !important;
   }
   .swal2-ent.swal2-ent-dark  { background:#13132a !important; border:1px solid rgba(255,255,255,.1) !important; }
   .swal2-ent.swal2-ent-light { background:#ffffff !important; border:1px solid rgba(0,0,0,.09) !important; box-shadow:0 16px 60px rgba(0,0,0,.12) !important; }
 
-  .swal2-ent-title        { color:#eeeef8 !important; font-family:'Kanit',sans-serif !important; font-size:clamp(15px,4vw,18px) !important; font-weight:600 !important; }
-  .swal2-ent-title-light { color:#18182e !important; font-family:'Kanit',sans-serif !important; font-size:clamp(15px,4vw,18px) !important; font-weight:600 !important; }
+  .swal2-ent-title        { color:#eeeef8 !important; font-family:'Kanit',sans-serif !important; font-size:clamp(16px,4vw,20px) !important; font-weight:600 !important; }
+  .swal2-ent-title-light { color:#18182e !important; font-family:'Kanit',sans-serif !important; font-size:clamp(16px,4vw,20px) !important; font-weight:600 !important; }
 
-  .swal2-ent-html        { color:#8888aa !important; font-family:'Kanit',sans-serif !important; font-size:clamp(12px,3.5vw,14px) !important; }
-  .swal2-ent-html-light { color:#55557a !important; font-family:'Kanit',sans-serif !important; font-size:clamp(12px,3.5vw,14px) !important; }
+  .swal2-ent-html        { color:#8888aa !important; font-family:'Kanit',sans-serif !important; font-size:clamp(13px,3.5vw,15px) !important; margin-top: 8px !important;}
+  .swal2-ent-html-light { color:#55557a !important; font-family:'Kanit',sans-serif !important; font-size:clamp(13px,3.5vw,15px) !important; margin-top: 8px !important;}
 
-  .swal2-ent-actions { gap:10px !important; flex-wrap:wrap !important; }
-  .swal2-ent-confirm { border-radius:9px !important; font-family:'Kanit',sans-serif !important; font-size:clamp(12px,3.5vw,13px) !important; font-weight:600 !important; padding:9px 20px !important; box-shadow:0 4px 14px rgba(99,102,241,.35) !important; }
-  .swal2-ent-cancel        { border-radius:9px !important; font-family:'Kanit',sans-serif !important; font-size:clamp(12px,3.5vw,13px) !important; font-weight:500 !important; padding:9px 20px !important; border:1px solid rgba(255,255,255,.1) !important; color:#8888aa !important; background:rgba(255,255,255,.04) !important; }
+  .swal2-ent-actions { gap:12px !important; flex-wrap:wrap !important; margin-top: 24px !important; }
+  .swal2-ent-confirm { border-radius:10px !important; font-family:'Kanit',sans-serif !important; font-size:clamp(13px,3.5vw,14px) !important; font-weight:600 !important; padding:10px 24px !important; box-shadow:0 4px 14px rgba(99,102,241,.35) !important; }
+  .swal2-ent-cancel        { border-radius:10px !important; font-family:'Kanit',sans-serif !important; font-size:clamp(13px,3.5vw,14px) !important; font-weight:500 !important; padding:10px 24px !important; border:1px solid rgba(255,255,255,.1) !important; color:#8888aa !important; background:rgba(255,255,255,.04) !important; }
   .swal2-ent-cancel:hover { background:rgba(255,255,255,.08) !important; color:#eeeef8 !important; }
-  .swal2-ent-cancel-light        { border-radius:9px !important; font-family:'Kanit',sans-serif !important; font-size:clamp(12px,3.5vw,13px) !important; font-weight:500 !important; padding:9px 20px !important; border:1px solid rgba(0,0,0,.1) !important; color:#55557a !important; background:rgba(0,0,0,.03) !important; }
+  .swal2-ent-cancel-light        { border-radius:10px !important; font-family:'Kanit',sans-serif !important; font-size:clamp(13px,3.5vw,14px) !important; font-weight:500 !important; padding:10px 24px !important; border:1px solid rgba(0,0,0,.1) !important; color:#55557a !important; background:rgba(0,0,0,.03) !important; }
   .swal2-ent-cancel-light:hover { background:rgba(0,0,0,.07) !important; color:#18182e !important; }
-
-  /* success icon */
-  .swal2-icon.swal2-success { border-color:rgba(104,217,164,.4) !important; }
-  .swal2-icon.swal2-success .swal2-success-ring { border-color:rgba(104,217,164,.3) !important; }
-  .swal2-icon.swal2-success [class^=swal2-success-line] { background-color:#68d9a4 !important; }
-  .swal2-icon.swal2-success [class^=swal2-success-circular-line],
-  .swal2-icon.swal2-success .swal2-success-fix { background-color:#ffffff !important; }
-  .swal2-ent-dark .swal2-icon.swal2-success [class^=swal2-success-circular-line],
-  .swal2-ent-dark .swal2-icon.swal2-success .swal2-success-fix { background-color:#13132a !important; }
-
-  /* warning icon */
-  .swal2-icon.swal2-warning { color:#f5c842 !important; border-color:rgba(245,200,66,.4) !important; }
-  .swal2-icon.swal2-warning .swal2-icon-content { color:#f5c842 !important; }
-
-  /* error icon */
-  .swal2-icon.swal2-error { border-color:rgba(255,77,109,.4) !important; }
-  .swal2-icon.swal2-error [class^=swal2-x-mark-line] { background-color:#ff4d6d !important; }
-
-  .swal2-timer-progress-bar { background:rgba(99,102,241,.6) !important; }
-
-  /* toast */
-  .swal2-toast.swal2-ent { border-radius:12px !important; padding:10px 14px !important; width:auto !important; }
-  .swal2-toast .swal2-ent-title, .swal2-toast .swal2-ent-title-light { font-size:clamp(11px,3.5vw,13px) !important; }
 
   /* mobile adjustments */
   @media (max-width:480px) {
     .swal2-popup { margin: 0 12px !important; }
-    .swal2-ent { padding:16px !important; }
-    .swal2-icon { transform: scale(0.75); margin:0 auto 8px !important; }
+    .swal2-ent { padding:20px !important; }
+    .swal2-icon { transform: scale(0.85); margin:0 auto 12px !important; }
     .swal2-ent-actions { width:100% !important; justify-content:stretch !important; }
     .swal2-ent-confirm, .swal2-ent-cancel, .swal2-ent-cancel-light { flex:1 !important; justify-content:center !important; }
-  }
-
-  /* Custom scrollbar */
-  ::-webkit-scrollbar { width: 6px; height: 6px; }
-  ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: rgba(99,102,241,0.3); border-radius: 3px; }
-  ::-webkit-scrollbar-thumb:hover { background: rgba(99,102,241,0.5); }
-
-  /* Print styles for timetable */
-  @media print {
-    .no-print { display: none !important; }
-    .print-only { display: block !important; }
-    body { background: white !important; }
-    .dark { background: white !important; color: black !important; }
   }
 `
 
 // =============================================================================
 // SHARED CLASS STRINGS
 // =============================================================================
-const thCls =
-  "px-3 sm:px-4 py-2.5 text-left text-[10px] font-bold tracking-[.08em] uppercase " +
-  "text-[#9999b8] dark:text-[#55556a] bg-black/[.02] dark:bg-white/[.02] " +
-  "border-b border-black/[.06] dark:border-white/[.06] whitespace-nowrap"
-
 const fieldInputCls =
   "w-full h-10 px-3 rounded-lg text-[13px] outline-none appearance-none font-[inherit] " +
   "bg-black/[.03] dark:bg-white/[.03] border border-black/[.08] dark:border-white/[.07] " +
@@ -196,39 +126,28 @@ const fieldInputCls =
   "focus:border-[#6366f1]/50 focus:bg-[#6366f1]/[.04] focus:ring-2 focus:ring-[#6366f1]/10 transition-all"
 
 const fieldLabelCls =
-  "text-[10px] font-medium tracking-wider uppercase flex items-center gap-1 text-[#9999b8] dark:text-[#55556a]"
+  "text-[10px] font-medium tracking-wider uppercase flex items-center gap-1 text-[#9999b8] dark:text-[#55556a] mb-1.5"
 
 const btnPrimaryCls =
   "h-9 px-5 rounded-lg bg-gradient-to-br from-[#6366f1] to-[#8b5cf6] border-0 text-white text-[13px] " +
   "font-semibold flex items-center justify-center gap-1.5 shadow-[0_4px_16px_rgba(99,102,241,.3)] " +
-  "hover:-translate-y-px hover:shadow-[0_6px_22px_rgba(99,102,241,.45)] disabled:opacity-50 " +
-  "disabled:cursor-not-allowed transition-all font-[inherit] cursor-pointer"
+  "hover:-translate-y-px hover:shadow-[0_6px_22px_rgba(99,102,241,.45)] disabled:opacity-60 " +
+  "disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-[0_4px_16px_rgba(99,102,241,.3)] transition-all font-[inherit] cursor-pointer"
 
 const btnSecondaryCls =
   "h-9 px-4 rounded-lg border border-black/[.08] dark:border-white/[.07] bg-transparent " +
   "text-[#55557a] dark:text-[#8888aa] text-[13px] font-medium cursor-pointer " +
   "hover:border-black/20 dark:hover:border-white/[.14] hover:text-[#18182e] dark:hover:text-[#eeeef8] " +
-  "hover:bg-black/[.03] dark:hover:bg-white/[.04] transition-all font-[inherit]"
+  "hover:bg-black/[.03] dark:hover:bg-white/[.04] disabled:opacity-50 disabled:cursor-not-allowed transition-all font-[inherit]"
 
 // =============================================================================
 // UTILITY FUNCTIONS
 // =============================================================================
-
 const generateUUID = () => {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
     const r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
     return v.toString(16);
   });
-}
-
-const formatThaiDate = (dateStr) => {
-  if (!dateStr) return '-';
-  try {
-    const d = new Date(dateStr);
-    return d.toLocaleDateString('th-TH', { year: 'numeric', month: 'short', day: 'numeric' });
-  } catch {
-    return dateStr;
-  }
 }
 
 const formatThaiDateTime = (dateStr) => {
@@ -257,14 +176,8 @@ const parseTimeValue = (val) => {
   return String(val).substring(0, 5);
 }
 
-const minsToTime = (mins) => {
-  const h = Math.floor(mins / 60);
-  const m = mins % 60;
-  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
-}
-
 // =============================================================================
-// STAT CARD COMPONENT
+// COMPONENTS
 // =============================================================================
 function StatCard({ label, value, sub, accent, children, onClick }) {
   return (
@@ -300,9 +213,6 @@ function StatCard({ label, value, sub, accent, children, onClick }) {
   )
 }
 
-// =============================================================================
-// SIDEBAR NAVIGATION ITEM
-// =============================================================================
 function NavItem({ icon: Icon, label, active, onClick, badge }) {
   return (
     <button
@@ -324,9 +234,6 @@ function NavItem({ icon: Icon, label, active, onClick, badge }) {
   )
 }
 
-// =============================================================================
-// MODAL COMPONENT
-// =============================================================================
 function Modal({ open, onClose, title, icon: Icon, children, size = "md" }) {
   const isMobileRef = useRef(false);
   
@@ -381,12 +288,10 @@ function Modal({ open, onClose, title, icon: Icon, children, size = "md" }) {
           sizeClasses[size] || sizeClasses.md
         ].join(" ")}
       >
-        {/* Mobile handle */}
         <div className="absolute top-0 left-0 right-0 h-1.5 flex justify-center pt-2.5 sm:hidden z-20 pointer-events-none">
           <div className="w-10 h-1.5 rounded-full bg-black/15 dark:bg-white/15" />
         </div>
 
-        {/* Header */}
         <div className="sticky top-0 z-10 px-4 sm:px-5 pt-6 pb-3 sm:py-3.5 border-b border-black/[.07] dark:border-white/[.07] flex items-center justify-between bg-white/90 dark:bg-[#111127]/90 backdrop-blur-md rounded-t-[24px] sm:rounded-none">
           <div className="flex items-center gap-2.5">
             {Icon && (
@@ -402,7 +307,6 @@ function Modal({ open, onClose, title, icon: Icon, children, size = "md" }) {
           </button>
         </div>
 
-        {/* Content */}
         <div className="flex-1 overflow-y-auto p-4 sm:p-5">
           {children}
         </div>
@@ -411,37 +315,7 @@ function Modal({ open, onClose, title, icon: Icon, children, size = "md" }) {
   );
 }
 
-// =============================================================================
-// CONFIRM DELETE MODAL
-// =============================================================================
-function ConfirmModal({ open, onClose, onConfirm, title, message }) {
-  const handleConfirm = async () => {
-    if (onConfirm) await onConfirm();
-    onClose();
-  };
-  
-  return (
-    <Modal open={open} onClose={onClose} title={title} icon={Trash2} size="sm">
-      <div className="space-y-4">
-        <p className="text-[13px] text-[#55557a] dark:text-[#8888aa]">{message}</p>
-        <div className="flex gap-2.5 justify-end pt-4 border-t border-black/[.07] dark:border-white/[.07]">
-          <button onClick={onClose} className={btnSecondaryCls}>
-            ยกเลิก
-          </button>
-          <button onClick={handleConfirm} className={`${btnPrimaryCls} !bg-gradient-to-br !from-red-500 !to-red-600 hover:!shadow-red-500/30`}>
-            <Trash2 size={14} />
-            ยืนยันลบ
-          </button>
-        </div>
-      </div>
-    </Modal>
-  );
-}
-
-// =============================================================================
-// LOADING OVERLAY - Full Page Style
-// =============================================================================
-function LoadingOverlay({ show, text = "กำลังโหลด..." }) {
+function LoadingOverlay({ show, text = "กำลังโหลดข้อมูลระบบ..." }) {
   if (!show) return null;
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-[#f8fafc] dark:bg-[#0a0a10]">
@@ -453,24 +327,6 @@ function LoadingOverlay({ show, text = "กำลังโหลด..." }) {
   );
 }
 
-// =============================================================================
-// EMPTY STATE
-// =============================================================================
-function EmptyState({ icon: Icon, title, description }) {
-  return (
-    <div className="flex flex-col items-center justify-center py-12 text-center">
-      <div className="w-16 h-16 rounded-2xl bg-[#6366f1]/10 flex items-center justify-center mb-4">
-        <Icon size={28} className="text-[#6366f1]" />
-      </div>
-      <h3 className="text-[15px] font-semibold text-[#18182e] dark:text-[#eeeef8] mb-1">{title}</h3>
-      <p className="text-[12px] text-[#9999b8] dark:text-[#55556a] max-w-[200px]">{description}</p>
-    </div>
-  );
-}
-
-// =============================================================================
-// BADGE COMPONENT
-// =============================================================================
 function Badge({ children, color = "#6366f1", type = "default" }) {
   const typeStyles = {
     default: { bg: `${color}15`, border: `${color}30`, text: color },
@@ -490,14 +346,17 @@ function Badge({ children, color = "#6366f1", type = "default" }) {
 }
 
 // =============================================================================
-// MAIN SCHOOL TIMETABLE MANAGEMENT SYSTEM PAGE
+// MAIN PAGE COMPONENT
 // =============================================================================
 export default function SchoolTimetableSystem() {
   // ─── STATE ─────────────────────────────────────────────────────────────────
   const [mounted, setMounted] = useState(false)
   const [isDark, setIsDark] = useState(false)
   const [activeSection, setActiveSection] = useState("dashboard")
-  const [loading, setLoading] = useState(true)
+  
+  // โหลดหน้าจอแรกสุดเท่านั้น
+  const [initialLoad, setInitialLoad] = useState(true)
+  
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [isMobile, setIsMobile] = useState(false)
   
@@ -512,23 +371,25 @@ export default function SchoolTimetableSystem() {
   const [timetable, setTimetable] = useState([])
   const [activityLog, setActivityLog] = useState([])
   
-  // Form states
+  // Form & Action states
   const [showModal, setShowModal] = useState(false)
   const [modalType, setModalType] = useState('')
   const [editingItem, setEditingItem] = useState(null)
   const [formData, setFormData] = useState({})
-  const [confirmDelete, setConfirmDelete] = useState({ open: false, id: null, name: '', onConfirm: null })
+  
+  // Loading states สำหรับปุ่มต่างๆ แยกกันเพื่อให้ UX ดูดีขึ้น
+  const [saving, setSaving] = useState(false) 
+  const [savingSchoolInfo, setSavingSchoolInfo] = useState(false)
   
   // Timetable builder states
   const [selectedYear, setSelectedYear] = useState('')
   const [selectedClass, setSelectedClass] = useState('')
   
   // View states
-  const [viewMode, setViewMode] = useState('class') // 'class' or 'teacher'
+  const [viewMode, setViewMode] = useState('class')
   
   // ─── EFFECTS ───────────────────────────────────────────────────────────────
   useEffect(() => {
-    // Check system preference first, then localStorage
     let prefersDark = false
     try {
       const stored = localStorage.getItem("theme")
@@ -545,10 +406,9 @@ export default function SchoolTimetableSystem() {
     document.documentElement.classList.toggle("dark", prefersDark)
     setMounted(true)
     
-    // Load all data
-    loadAllData()
+    // โหลดข้อมูลทั้งหมด พร้อมกับเปิด Initial Load ในรอบแรก
+    loadAllData(true)
     
-    // Check mobile viewport
     const checkMobile = () => setIsMobile(window.innerWidth < 1024)
     checkMobile()
     window.addEventListener('resize', checkMobile)
@@ -562,14 +422,12 @@ export default function SchoolTimetableSystem() {
     }
   }, [isDark, mounted])
   
-  // Reset form data when editingItem changes
   useEffect(() => {
     if (showModal) {
       setFormData(editingItem || {})
     }
   }, [editingItem, showModal])
 
-  // Safely initialize selected class when subjects load
   useEffect(() => {
     const classrooms = [...new Set((subjects || []).map(s => s?.classroom).filter(Boolean))]
     if (!selectedClass && classrooms.length > 0) {
@@ -577,7 +435,6 @@ export default function SchoolTimetableSystem() {
     }
   }, [subjects, selectedClass])
 
-  // Safely initialize selected year when academicYears load
   useEffect(() => {
     if (!selectedYear && (academicYears || []).length > 0) {
       const active = academicYears.find(y => y?.isActive)
@@ -586,8 +443,8 @@ export default function SchoolTimetableSystem() {
   }, [academicYears, selectedYear])
   
   // ─── DATA LOADING ──────────────────────────────────────────────────────────
-  const loadAllData = async () => {
-    setLoading(true)
+  const loadAllData = async (isFirstLoad = false) => {
+    if (isFirstLoad) setInitialLoad(true)
     try {
       const res = await fetch('/api/all-data')
       if (!res.ok) {
@@ -597,7 +454,11 @@ export default function SchoolTimetableSystem() {
       const data = await res.json()
       
       setSchoolInfo(data.schoolInfo || {})
-      setAcademicYears(data.academicYears || [])
+      setAcademicYears((data.academicYears || []).map(y => ({
+        ...y,
+        startDate: y.start_date,
+        endDate: y.end_date
+      })))
       setAdmins((data.admins || []).map(a => ({
         id: a.id, title: a.title, firstName: a.first_name, lastName: a.last_name, position: a.position
       })))
@@ -630,9 +491,9 @@ export default function SchoolTimetableSystem() {
       })))
     } catch (error) {
       console.error('Error loading data:', error)
-      fireToast('error', `โหลดข้อมูลไม่สำเร็จ: ${error.message}`)
+      showAlert('error', 'ข้อผิดพลาด', `โหลดข้อมูลไม่สำเร็จ: ${error.message}`)
     } finally {
-      setLoading(false)
+      if (isFirstLoad) setInitialLoad(false)
     }
   }
 
@@ -649,12 +510,44 @@ export default function SchoolTimetableSystem() {
     } catch (error) { console.error('Error loading timetable:', error) }
   }
   
-  // ─── HELPERS ───────────────────────────────────────────────────────────────
-  const fireToast = async (icon, title) => {
-    const Swal = await getSwal()
-    Swal.fire({ ...getToastPreset(), icon, title })
-  }
+  // ─── SWEETALERT HELPERS ────────────────────────────────────────────────────
   
+  const showAlert = async (icon, title, text) => {
+    const Swal = await getSwal();
+    Swal.fire({
+      ...getSwalBase(),
+      icon,
+      title,
+      text,
+      timer: icon === 'success' ? 2500 : undefined,
+      showConfirmButton: icon !== 'success',
+      confirmButtonText: 'ตกลง',
+      confirmButtonColor: '#6366f1'
+    });
+  };
+
+  const showConfirmDialog = async (itemName, onConfirmCallback) => {
+    const Swal = await getSwal();
+    const base = getSwalBase();
+    
+    const result = await Swal.fire({
+      ...base,
+      title: 'ยืนยันการลบข้อมูล',
+      text: `คุณต้องการลบ "${itemName}" ใช่หรือไม่? ข้อมูลนี้จะไม่สามารถกู้คืนได้`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'ยืนยันลบ',
+      cancelButtonText: 'ยกเลิก',
+      confirmButtonColor: '#ef4444', 
+      reverseButtons: true
+    });
+
+    if (result.isConfirmed) {
+      Swal.showLoading();
+      await onConfirmCallback();
+    }
+  };
+
   const openModal = (type, item = null) => {
     setModalType(type)
     setEditingItem(item)
@@ -663,20 +556,16 @@ export default function SchoolTimetableSystem() {
   }
   
   const closeModal = () => {
+    if (saving) return; // ไม่ให้ปิดตอนกำลังเซฟ
     setShowModal(false)
     setModalType('')
     setEditingItem(null)
     setFormData({})
   }
   
-  const confirmDeleteAction = (id, name, onConfirm) => {
-    setConfirmDelete({ open: true, id, name, onConfirm })
-  }
-  
   // ─── SECTIONS RENDER ─────────────────────────────────────────────────────────
   const renderDashboard = () => (
     <div className="space-y-6">
-      {/* Welcome Card */}
       <div className="relative rounded-2xl border border-black/[.08] dark:border-white/[.07] bg-gradient-to-br from-[#6366f1] to-[#8b5cf6] p-6 text-white overflow-hidden">
         <div className="relative z-10">
           <h1 className="text-2xl font-bold mb-2">ยินดีต้อนรับสู่ระบบจัดตารางเรียน</h1>
@@ -688,7 +577,6 @@ export default function SchoolTimetableSystem() {
         </div>
       </div>
       
-      {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard label="รายวิชา" value={subjects.length} accent="#6366f1" sub={`${subjects.filter(s => s.type === 'พื้นฐาน').length} พื้นฐาน`}>
           <BookOpen size={18} />
@@ -704,7 +592,6 @@ export default function SchoolTimetableSystem() {
         </StatCard>
       </div>
       
-      {/* Quick Actions */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="rounded-2xl border border-black/[.08] dark:border-white/[.07] bg-white dark:bg-[#121221] p-5">
           <h3 className="text-sm font-semibold text-[#18182e] dark:text-[#eeeef8] mb-4 flex items-center gap-2">
@@ -736,8 +623,8 @@ export default function SchoolTimetableSystem() {
             ผู้บริหาร
           </h3>
           <div className="space-y-3">
-            {admins.map((admin) => (
-              <div key={admin.id} className="flex items-center gap-3 p-3 rounded-xl bg-black/[.02] dark:bg-white/[.02]">
+            {admins.map((admin, i) => (
+              <div key={admin.id || i} className="flex items-center gap-3 p-3 rounded-xl bg-black/[.02] dark:bg-white/[.02]">
                 <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#6366f1] to-[#8b5cf6] flex items-center justify-center text-white font-bold text-sm">
                   {admin.firstName?.[0] || '?'}
                 </div>
@@ -758,6 +645,7 @@ export default function SchoolTimetableSystem() {
   
   // ─── SAVE HANDLERS ─────────────────────────────────────────────────────────
   const saveSchoolInfo = async () => {
+    setSavingSchoolInfo(true)
     try {
       const res = await fetch('/api/school-info', {
         method: 'PUT',
@@ -766,36 +654,43 @@ export default function SchoolTimetableSystem() {
       })
       const data = await res.json()
       if (data.success) {
-        fireToast('success', 'บันทึกข้อมูลเรียบร้อย')
+        showAlert('success', 'สำเร็จ', 'บันทึกข้อมูลโรงเรียนเรียบร้อยแล้ว')
       } else {
-        fireToast('error', data.error || 'เกิดข้อผิดพลาด')
+        showAlert('error', 'ข้อผิดพลาด', data.error || 'เกิดข้อผิดพลาดในการบันทึก')
       }
     } catch (error) {
-      fireToast('error', 'เกิดข้อผิดพลาดในการบันทึก')
+      showAlert('error', 'ข้อผิดพลาด', 'เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์')
+    } finally {
+      setSavingSchoolInfo(false)
     }
   }
   
   const handleSave = async (type, item, isEdit = false) => {
+    setSaving(true)
     try {
-      // Validation
       if (type === 'academicYear' && (!item.year || !item.semester)) {
-        fireToast('error', 'กรุณากรอกปีการศึกษาและภาคเรียน')
+        showAlert('warning', 'ข้อมูลไม่ครบถ้วน', 'กรุณากรอกปีการศึกษาและภาคเรียนให้ครบถ้วน')
+        setSaving(false)
         return
       }
       if (type === 'admin' && (!item.title || !item.firstName || !item.lastName)) {
-        fireToast('error', 'กรุณากรอกข้อมูลผู้บริหารให้ครบถ้วน')
+        showAlert('warning', 'ข้อมูลไม่ครบถ้วน', 'กรุณากรอกข้อมูลผู้บริหารให้ครบถ้วน')
+        setSaving(false)
         return
       }
       if (type === 'subject' && (!item.code || !item.name)) {
-        fireToast('error', 'กรุณากรอกรหัสวิชาและชื่อวิชา')
+        showAlert('warning', 'ข้อมูลไม่ครบถ้วน', 'กรุณากรอกรหัสวิชาและชื่อวิชาให้ครบถ้วน')
+        setSaving(false)
         return
       }
       if (type === 'teacher' && (!item.prefix || !item.firstName || !item.lastName)) {
-        fireToast('error', 'กรุณากรอกข้อมูลครูให้ครบถ้วน')
+        showAlert('warning', 'ข้อมูลไม่ครบถ้วน', 'กรุณากรอกข้อมูลครูให้ครบถ้วน')
+        setSaving(false)
         return
       }
       if (type === 'assignment' && (!item.teacherId || !item.subjectId || !item.classroom)) {
-        fireToast('error', 'กรุณาเลือกครู วิชา และห้องเรียน')
+        showAlert('warning', 'ข้อมูลไม่ครบถ้วน', 'กรุณาเลือกครู วิชา และห้องเรียนให้ครบถ้วน')
+        setSaving(false)
         return
       }
       
@@ -819,14 +714,16 @@ export default function SchoolTimetableSystem() {
       
       const data = await res.json()
       if (data.success) {
-        fireToast('success', data.message || 'บันทึกเรียบร้อย')
-        loadAllData()
+        showAlert('success', 'สำเร็จ', data.message || 'บันทึกข้อมูลเรียบร้อยแล้ว')
+        loadAllData() // Background update
         closeModal()
       } else {
-        fireToast('error', data.error || 'เกิดข้อผิดพลาด')
+        showAlert('error', 'ข้อผิดพลาด', data.error || 'เกิดข้อผิดพลาดในการบันทึก')
       }
     } catch (error) {
-      fireToast('error', 'เกิดข้อผิดพลาดในการบันทึก')
+      showAlert('error', 'ข้อผิดพลาด', 'เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์')
+    } finally {
+      setSaving(false)
     }
   }
   
@@ -844,13 +741,13 @@ export default function SchoolTimetableSystem() {
       const data = await res.json()
       
       if (data.success) {
-        fireToast('success', data.message || 'ลบเรียบร้อย')
+        showAlert('success', 'ลบข้อมูลสำเร็จ', data.message || 'ลบข้อมูลออกจากระบบเรียบร้อยแล้ว')
         loadAllData()
       } else {
-        fireToast('error', data.error || 'เกิดข้อผิดพลาด')
+        showAlert('error', 'ไม่สามารถลบข้อมูลได้', data.error || 'เกิดข้อผิดพลาดในการลบข้อมูล')
       }
     } catch (error) {
-      fireToast('error', 'เกิดข้อผิดพลาดในการลบ')
+      showAlert('error', 'ข้อผิดพลาด', 'เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์')
     }
   }
   
@@ -882,15 +779,15 @@ export default function SchoolTimetableSystem() {
           </div>
         </div>
         <div className="mt-6">
-          <button onClick={saveSchoolInfo} className={btnPrimaryCls}>
-            <Save size={14} /> บันทึกข้อมูล
+          <button onClick={saveSchoolInfo} disabled={savingSchoolInfo} className={btnPrimaryCls}>
+            {savingSchoolInfo ? <RefreshCw size={14} className="animate-spin" /> : <Save size={14} />} 
+            {savingSchoolInfo ? 'กำลังบันทึก...' : 'บันทึกข้อมูล'}
           </button>
         </div>
       </div>
     </div>
   )
   
-  // ─── REUSABLE CRUD COMPONENTS ──────────────────────────────────────────────
   const CrudHeader = ({ title, icon: Icon, onAdd }) => (
     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 sm:mb-6">
       <h2 className="text-base sm:text-lg font-semibold text-[#18182e] dark:text-[#eeeef8] flex items-center gap-2">
@@ -927,14 +824,14 @@ export default function SchoolTimetableSystem() {
     <div>
       <CrudHeader title="ปีการศึกษา" icon={Calendar} onAdd={() => openModal('academicYear')} />
       <DataTable headers={['ปี', 'ภาคเรียน', 'เริ่ม', 'สิ้นสุด', 'ใช้งาน', '']} empty={!academicYears || academicYears.length === 0}>
-        {(academicYears || []).map(year => (
-          <tr key={year?.id || Math.random()} className="hover:bg-black/[.02] dark:hover:bg-white/[.02]">
+        {(academicYears || []).map((year, i) => (
+          <tr key={year?.id || i} className="hover:bg-black/[.02] dark:hover:bg-white/[.02]">
             <td className="px-4 py-3 text-[13px] text-[#18182e] dark:text-[#eeeef8]">{year?.year || '-'}</td>
             <td className="px-4 py-3 text-[13px]">{year?.semester || '-'}</td>
             <td className="px-4 py-3 text-[13px] text-[#55557a] dark:text-[#8888aa]">{year?.startDate || '-'}</td>
             <td className="px-4 py-3 text-[13px] text-[#55557a] dark:text-[#8888aa]">{year?.endDate || '-'}</td>
             <td className="px-4 py-3">{year?.isActive ? <Badge type="success">ใช้งาน</Badge> : <Badge>ไม่ใช้</Badge>}</td>
-            <td className="px-4 py-3"><ActionButtons onEdit={() => openModal('academicYear', year)} onDelete={() => year?.id && confirmDeleteAction(year.id, `${year.year}/${year.semester}`, () => handleDelete('academicYear', year.id))} /></td>
+            <td className="px-4 py-3"><ActionButtons onEdit={() => openModal('academicYear', year)} onDelete={() => year?.id && showConfirmDialog(`${year.year}/${year.semester}`, () => handleDelete('academicYear', year.id))} /></td>
           </tr>
         ))}
       </DataTable>
@@ -945,13 +842,13 @@ export default function SchoolTimetableSystem() {
     <div>
       <CrudHeader title="ผู้บริหาร" icon={UserCog} onAdd={() => openModal('admin')} />
       <DataTable headers={['คำนำหน้า', 'ชื่อ', 'นามสกุล', 'ตำแหน่ง', '']} empty={!admins || admins.length === 0}>
-        {(admins || []).map(admin => (
-          <tr key={admin?.id || Math.random()} className="hover:bg-black/[.02] dark:hover:bg-white/[.02]">
+        {(admins || []).map((admin, i) => (
+          <tr key={admin?.id || i} className="hover:bg-black/[.02] dark:hover:bg-white/[.02]">
             <td className="px-4 py-3 text-[13px]">{admin?.title || '-'}</td>
             <td className="px-4 py-3 text-[13px] text-[#18182e] dark:text-[#eeeef8]">{admin?.firstName || '-'}</td>
             <td className="px-4 py-3 text-[13px] text-[#18182e] dark:text-[#eeeef8]">{admin?.lastName || '-'}</td>
             <td className="px-4 py-3 text-[13px] text-[#55557a] dark:text-[#8888aa]">{admin?.position || '-'}</td>
-            <td className="px-4 py-3"><ActionButtons onEdit={() => admin && openModal('admin', admin)} onDelete={() => admin?.id && confirmDeleteAction(admin.id, `${admin.title}${admin.firstName}`, () => handleDelete('admin', admin.id))} /></td>
+            <td className="px-4 py-3"><ActionButtons onEdit={() => admin && openModal('admin', admin)} onDelete={() => admin?.id && showConfirmDialog(`${admin.title}${admin.firstName}`, () => handleDelete('admin', admin.id))} /></td>
           </tr>
         ))}
       </DataTable>
@@ -967,7 +864,10 @@ export default function SchoolTimetableSystem() {
       <div>
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-lg font-semibold text-[#18182e] dark:text-[#eeeef8] flex items-center gap-2"><Clock size={18} className="text-[#6366f1]" /> กำหนดเวลาเรียน</h2>
-          <button onClick={savePeriods} className={btnPrimaryCls}><Save size={14} /> บันทึก</button>
+          <button onClick={savePeriods} disabled={saving} className={btnPrimaryCls}>
+            {saving ? <RefreshCw size={14} className="animate-spin" /> : <Save size={14} />} 
+            {saving ? 'กำลังบันทึก...' : 'บันทึก'}
+          </button>
         </div>
         <DataTable headers={['คาบ', 'เวลาเริ่ม', 'เวลาจบ', 'สถานะ', '']} empty={!periods || periods.length === 0}>
           {(periods || []).map((period, idx) => (
@@ -1012,14 +912,14 @@ export default function SchoolTimetableSystem() {
     <div>
       <CrudHeader title="รายวิชา" icon={BookOpen} onAdd={() => openModal('subject')} />
       <DataTable headers={['รหัส', 'ชื่อวิชา', 'คาบ/สัปดาห์', 'ประเภท', 'ห้องเรียน', '']} empty={!subjects || subjects.length === 0}>
-        {(subjects || []).map(subject => (
-          <tr key={subject?.id || Math.random()} className="hover:bg-black/[.02] dark:hover:bg-white/[.02]">
+        {(subjects || []).map((subject, i) => (
+          <tr key={subject?.id || i} className="hover:bg-black/[.02] dark:hover:bg-white/[.02]">
             <td className="px-4 py-3 text-[13px] font-medium text-[#6366f1]">{subject?.code || '-'}</td>
             <td className="px-4 py-3 text-[13px] text-[#18182e] dark:text-[#eeeef8]">{subject?.name || '-'}</td>
             <td className="px-4 py-3 text-[13px]">{subject?.periodsPerWeek || '-'}</td>
             <td className="px-4 py-3"><Badge type={subject?.type === 'พื้นฐาน' ? 'default' : subject?.type === 'เพิ่มเติม' ? 'info' : 'warning'}>{subject?.type || 'พื้นฐาน'}</Badge></td>
             <td className="px-4 py-3 text-[13px]">{subject?.classroom || '-'}</td>
-            <td className="px-4 py-3"><ActionButtons onEdit={() => subject && openModal('subject', subject)} onDelete={() => subject?.id && confirmDeleteAction(subject.id, subject.name, () => handleDelete('subject', subject.id))} /></td>
+            <td className="px-4 py-3"><ActionButtons onEdit={() => subject && openModal('subject', subject)} onDelete={() => subject?.id && showConfirmDialog(subject.name, () => handleDelete('subject', subject.id))} /></td>
           </tr>
         ))}
       </DataTable>
@@ -1030,13 +930,13 @@ export default function SchoolTimetableSystem() {
     <div>
       <CrudHeader title="ครูผู้สอน" icon={GraduationCap} onAdd={() => openModal('teacher')} />
       <DataTable headers={['คำนำหน้า', 'ชื่อ', 'นามสกุล', 'กลุ่มสาระ', '']} empty={!teachers || teachers.length === 0}>
-        {(teachers || []).map(teacher => (
-          <tr key={teacher?.id || Math.random()} className="hover:bg-black/[.02] dark:hover:bg-white/[.02]">
+        {(teachers || []).map((teacher, i) => (
+          <tr key={teacher?.id || i} className="hover:bg-black/[.02] dark:hover:bg-white/[.02]">
             <td className="px-4 py-3 text-[13px]">{teacher?.prefix || '-'}</td>
             <td className="px-4 py-3 text-[13px] text-[#18182e] dark:text-[#eeeef8]">{teacher?.firstName || '-'}</td>
             <td className="px-4 py-3 text-[13px] text-[#18182e] dark:text-[#eeeef8]">{teacher?.lastName || '-'}</td>
             <td className="px-4 py-3 text-[13px] text-[#55557a] dark:text-[#8888aa]">{teacher?.department || '-'}</td>
-            <td className="px-4 py-3"><ActionButtons onEdit={() => teacher && openModal('teacher', teacher)} onDelete={() => teacher?.id && confirmDeleteAction(teacher.id, `${teacher.firstName} ${teacher.lastName}`, () => handleDelete('teacher', teacher.id))} /></td>
+            <td className="px-4 py-3"><ActionButtons onEdit={() => teacher && openModal('teacher', teacher)} onDelete={() => teacher?.id && showConfirmDialog(`${teacher.firstName} ${teacher.lastName}`, () => handleDelete('teacher', teacher.id))} /></td>
           </tr>
         ))}
       </DataTable>
@@ -1047,15 +947,18 @@ export default function SchoolTimetableSystem() {
     <div>
       <CrudHeader title="จัดครูผู้สอน" icon={Users} onAdd={() => openModal('assignment')} />
       <DataTable headers={['ครูผู้สอน', 'วิชา', 'ห้องเรียน', 'ปีการศึกษา', '']} empty={!assignments || assignments.length === 0}>
-        {(assignments || []).map(assignment => (
-          <tr key={assignment?.id || Math.random()} className="hover:bg-black/[.02] dark:hover:bg-white/[.02]">
-            <td className="px-4 py-3 text-[13px] text-[#18182e] dark:text-[#eeeef8]">{assignment?.teacherPrefix || ''}{assignment?.teacherFirstName || ''} {assignment?.teacherLastName || ''}</td>
-            <td className="px-4 py-3 text-[13px]"><span className="text-[#6366f1]">{assignment?.subjectCode || '-'}</span> {assignment?.subjectName || ''}</td>
-            <td className="px-4 py-3 text-[13px]">{assignment?.classroom || '-'}</td>
-            <td className="px-4 py-3 text-[13px] text-[#55557a] dark:text-[#8888aa]">{(academicYears || []).find(y => y?.id === assignment?.academicYearId)?.year || '-'}</td>
-            <td className="px-4 py-3"><ActionButtons onEdit={() => assignment && openModal('assignment', assignment)} onDelete={() => assignment?.id && confirmDeleteAction(assignment.id, 'รายการนี้', () => handleDelete('assignment', assignment.id))} /></td>
-          </tr>
-        ))}
+        {(assignments || []).map((assignment, i) => {
+           const acYear = (academicYears || []).find(y => y?.id === assignment?.academicYearId);
+           return (
+             <tr key={assignment?.id || i} className="hover:bg-black/[.02] dark:hover:bg-white/[.02]">
+               <td className="px-4 py-3 text-[13px] text-[#18182e] dark:text-[#eeeef8]">{assignment?.teacherPrefix || ''}{assignment?.teacherFirstName || ''} {assignment?.teacherLastName || ''}</td>
+               <td className="px-4 py-3 text-[13px]"><span className="text-[#6366f1]">{assignment?.subjectCode || '-'}</span> {assignment?.subjectName || ''}</td>
+               <td className="px-4 py-3 text-[13px]">{assignment?.classroom || '-'}</td>
+               <td className="px-4 py-3 text-[13px] text-[#55557a] dark:text-[#8888aa]">{acYear ? `${acYear.year}/${acYear.semester}` : '-'}</td>
+               <td className="px-4 py-3"><ActionButtons onEdit={() => assignment && openModal('assignment', assignment)} onDelete={() => assignment?.id && showConfirmDialog(`การจัดสอนวิชา ${assignment?.subjectName || ''} ของครู${assignment?.teacherFirstName || ''}`, () => handleDelete('assignment', assignment.id))} /></td>
+             </tr>
+           );
+        })}
       </DataTable>
     </div>
   )
@@ -1068,8 +971,6 @@ export default function SchoolTimetableSystem() {
     const getSlot = (day, period) => (timetable || []).find(t => t?.day === day && t?.period === period?.periodNumber && t?.classroom === selectedClass && t?.academicYearId === selectedYear)
     
     const updateSlot = async (day, period, subjectId, teacherId) => {
-      // Whether existing or not, send POST to API. 
-      // The API should handle Insert/Update/Delete based on subjectId presence.
       await fetch('/api/timetable', { 
         method: 'POST', 
         headers: { 'Content-Type': 'application/json' }, 
@@ -1109,7 +1010,7 @@ export default function SchoolTimetableSystem() {
             <thead className="bg-black/[.03] dark:bg-white/[.03]">
               <tr>
                 <th className="px-3 py-3 text-[11px] font-semibold text-[#55557a] dark:text-[#8888aa]">วัน / คาบ</th>
-                {activePeriods.map(p => <th key={p?.id || Math.random()} className="px-3 py-3 text-[11px] font-semibold text-[#55557a] dark:text-[#8888aa]">{p?.periodNumber || '-'}<br/><span className="font-normal">{p?.startTime || '--:--'}-{p?.endTime || '--:--'}</span></th>)}
+                {activePeriods.map((p, i) => <th key={p?.id || i} className="px-3 py-3 text-[11px] font-semibold text-[#55557a] dark:text-[#8888aa]">{p?.periodNumber || '-'}<br/><span className="font-normal">{p?.startTime || '--:--'}-{p?.endTime || '--:--'}</span></th>)}
               </tr>
             </thead>
             <tbody className="divide-y divide-black/[.06] dark:divide-white/[.06]">
@@ -1174,7 +1075,7 @@ export default function SchoolTimetableSystem() {
             <div><label className={fieldLabelCls}>วันเริ่ม</label><input type="date" value={formData.startDate || ''} onChange={e => setFormData({...formData, startDate: e.target.value})} className={fieldInputCls} /></div>
             <div><label className={fieldLabelCls}>วันสิ้นสุด</label><input type="date" value={formData.endDate || ''} onChange={e => setFormData({...formData, endDate: e.target.value})} className={fieldInputCls} /></div>
           </div>
-          <div className="flex items-center gap-2"><input type="checkbox" checked={formData.isActive || false} onChange={e => setFormData({...formData, isActive: e.target.checked})} id="isActive" /><label htmlFor="isActive" className="text-[13px] text-[#55557a] dark:text-[#8888aa]">ใช้งานปีการศึกษานี้</label></div>
+          <div className="flex items-center gap-2"><input type="checkbox" checked={formData.isActive || false} onChange={e => setFormData({...formData, isActive: e.target.checked})} id="isActive" /><label htmlFor="isActive" className="text-[13px] text-[#55557a] dark:text-[#8888aa] cursor-pointer">ใช้งานปีการศึกษานี้</label></div>
         </div>
       ),
       admin: (
@@ -1210,10 +1111,10 @@ export default function SchoolTimetableSystem() {
       ),
       assignment: (
         <div className="space-y-4">
-          <div><label className={fieldLabelCls}>ครูผู้สอน</label><select value={formData.teacherId || ''} onChange={e => setFormData({...formData, teacherId: e.target.value})} className={fieldInputCls}><option value="">เลือกครู</option>{teachers.map(t => <option key={t.id} value={t.id}>{t.prefix}{t.firstName} {t.lastName}</option>)}</select></div>
-          <div><label className={fieldLabelCls}>รายวิชา</label><select value={formData.subjectId || ''} onChange={e => setFormData({...formData, subjectId: e.target.value})} className={fieldInputCls}><option value="">เลือกวิชา</option>{subjects.map(s => <option key={s.id} value={s.id}>{s.code} - {s.name}</option>)}</select></div>
+          <div><label className={fieldLabelCls}>ครูผู้สอน</label><select value={formData.teacherId || ''} onChange={e => setFormData({...formData, teacherId: e.target.value})} className={fieldInputCls}><option value="">เลือกครู</option>{teachers.map((t, i) => <option key={t.id || i} value={t.id}>{t.prefix}{t.firstName} {t.lastName}</option>)}</select></div>
+          <div><label className={fieldLabelCls}>รายวิชา</label><select value={formData.subjectId || ''} onChange={e => setFormData({...formData, subjectId: e.target.value})} className={fieldInputCls}><option value="">เลือกวิชา</option>{subjects.map((s, i) => <option key={s.id || i} value={s.id}>{s.code} - {s.name}</option>)}</select></div>
           <div><label className={fieldLabelCls}>ห้องเรียน</label><input type="text" value={formData.classroom || ''} onChange={e => setFormData({...formData, classroom: e.target.value})} className={fieldInputCls} placeholder="ม.1/1" /></div>
-          <div><label className={fieldLabelCls}>ปีการศึกษา</label><select value={formData.academicYearId || selectedYear} onChange={e => setFormData({...formData, academicYearId: e.target.value})} className={fieldInputCls}>{academicYears.map(y => <option key={y.id} value={y.id}>{y.year}/{y.semester}</option>)}</select></div>
+          <div><label className={fieldLabelCls}>ปีการศึกษา</label><select value={formData.academicYearId || selectedYear} onChange={e => setFormData({...formData, academicYearId: e.target.value})} className={fieldInputCls}>{academicYears.map((y, i) => <option key={y.id || i} value={y.id}>{y.year}/{y.semester}</option>)}</select></div>
         </div>
       )
     }
@@ -1226,8 +1127,11 @@ export default function SchoolTimetableSystem() {
         <div className="space-y-4">
           {forms[modalType]}
           <div className="flex gap-2.5 justify-end pt-4 border-t border-black/[.07] dark:border-white/[.07]">
-            <button onClick={closeModal} className={btnSecondaryCls}>ยกเลิก</button>
-            <button onClick={submitForm} className={btnPrimaryCls}><Save size={14} /> บันทึก</button>
+            <button onClick={closeModal} disabled={saving} className={btnSecondaryCls}>ยกเลิก</button>
+            <button onClick={submitForm} disabled={saving} className={btnPrimaryCls}>
+              {saving ? <RefreshCw size={14} className="animate-spin" /> : <Save size={14} />} 
+              {saving ? (editingItem ? 'กำลังแก้ไข...' : 'กำลังบันทึก...') : 'บันทึก'}
+            </button>
           </div>
         </div>
       </Modal>
@@ -1235,21 +1139,14 @@ export default function SchoolTimetableSystem() {
   }
   
   // ─── MAIN RENDER ───────────────────────────────────────────────────────────
-  if (!mounted) {
-    return (
-      <div className="h-screen w-full bg-[#f8fafc] dark:bg-[#0a0a10] flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 rounded-full border-2 border-[#6366f1]/30 border-t-[#6366f1] animate-spin mx-auto mb-4" />
-          <p className="text-[14px] text-[#9999b8] dark:text-[#55556a] tracking-widest uppercase">กำลังโหลด...</p>
-        </div>
-      </div>
-    )
-  }
+  if (!mounted) return null;
   
   return (
     <div className="min-h-screen bg-[#f8fafc] dark:bg-[#0a0a10] transition-colors duration-500 ease-in-out">
       <style>{minimalCss}</style>
-      <LoadingOverlay show={loading} />
+      
+      {/* หน้าจอ Loading แบบ Full Screen จะแสดงแค่ตอน initialLoad = true เท่านั้น */}
+      <LoadingOverlay show={initialLoad} />
       
       {/* Mobile Sidebar Overlay */}
       {isMobile && sidebarOpen && (
@@ -1301,7 +1198,6 @@ export default function SchoolTimetableSystem() {
       
       {/* Main Content */}
       <main className={`transition-all duration-300 lg:ml-64 ${sidebarOpen ? 'lg:ml-64' : 'lg:ml-0'}`}>
-        {/* Header */}
         <header className="sticky top-0 z-30 bg-white/80 dark:bg-[#121221]/80 backdrop-blur-md border-b border-black/[.08] dark:border-white/[.07]">
           <div className="px-6 py-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -1324,13 +1220,11 @@ export default function SchoolTimetableSystem() {
             <div className="flex items-center gap-2">
               <button onClick={() => setIsDark(!isDark)} className="p-2 rounded-lg hover:bg-black/[.05] dark:hover:bg-white/[.05] text-[#55557a] dark:text-[#8888aa]" title={isDark ? 'สว่าง' : 'มืด'}>
                 {mounted && (isDark ? <Sun size={18} /> : <Moon size={18} />)}
-                {!mounted && <Moon size={18} className="opacity-50" />}
               </button>
             </div>
           </div>
         </header>
         
-        {/* Content */}
         <div className="p-3 sm:p-4 lg:p-6 safe-area-inset">
           {activeSection === 'dashboard' && renderDashboard()}
           {activeSection === 'schoolInfo' && renderSchoolInfo()}
@@ -1347,30 +1241,6 @@ export default function SchoolTimetableSystem() {
       
       {/* Modal Forms */}
       {renderModalForm()}
-      
-      {/* Confirm Delete Modal */}
-      <ConfirmModal 
-        open={confirmDelete.open} 
-        onClose={() => setConfirmDelete({ open: false, id: null, name: '', onConfirm: null })}
-        onConfirm={confirmDelete.onConfirm}
-        title="ยืนยันการลบ"
-        message={`คุณต้องการลบ "${confirmDelete.name}" ใช่หรือไม่?`}
-      />
     </div>
-  )
-}
-
-// Construction icon for empty state
-function Construction({ size, className }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-      <rect x="2" y="6" width="20" height="8" rx="1" />
-      <path d="M17 14v7" />
-      <path d="M7 14v7" />
-      <path d="M17 3v3" />
-      <path d="M7 3v3" />
-      <path d="M10.5 14 12 9l1.5 5" />
-      <path d="M8.5 9 12 3l3.5 6" />
-    </svg>
   )
 }
