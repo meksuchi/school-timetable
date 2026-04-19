@@ -567,8 +567,27 @@ export default function SchoolTimetableSystem() {
                         <select value={slot?.subjectId || ''} onChange={async e => {
                           const subjectId = e.target.value
                           const assignment = availableAssignments.find(a => a.subjectId === subjectId)
-                          await fetch('/api/timetable', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ day, period: period.periodNumber, subjectId, teacherId: assignment?.teacherId || null, classroom: selectedClass, academicYearId: selectedYear }) })
-                          loadTimetable()
+                          
+                          // ตรวจสอบว่ามีการเปลี่ยนแปลงจริงหรือไม่
+                          if (subjectId === (slot?.subjectId || '')) return
+                          
+                          try {
+                            const res = await fetch('/api/timetable', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ day, period: period.periodNumber, subjectId, teacherId: assignment?.teacherId || null, classroom: selectedClass, academicYearId: selectedYear }) })
+                            const data = await res.json()
+                            if (data.success) {
+                              await loadTimetable()
+                              // แสดง alert เฉพาะเมื่อบันทึกสำเร็จและข้อมูลมีการเปลี่ยนแปลงจริง
+                              if (data.changed !== false) {
+                                const subjectName = assignment?.subjectName || 'วิชา'
+                                showAlert('success', 'บันทึกสำเร็จ', `เพิ่ม ${subjectName} ลงตารางเรียนแล้ว`)
+                              }
+                            } else {
+                              showAlert('error', 'ข้อผิดพลาด', data.error || 'ไม่สามารถบันทึกตารางเรียนได้')
+                              await loadTimetable()
+                            }
+                          } catch (error) {
+                            showAlert('error', 'ข้อผิดพลาด', 'เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์')
+                          }
                         }} className="w-full text-[11px] p-2 rounded-lg border border-black/[.1] dark:border-white/[.1] bg-transparent outline-none cursor-pointer focus:ring-2 focus:ring-[#6366f1]/20">
                           <option value="">- ว่าง -</option>
                           {availableAssignments.length === 0 && <option value="" disabled>ไม่มีรายวิชาที่จัดครูแล้วในห้องนี้</option>}

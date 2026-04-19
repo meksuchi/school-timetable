@@ -48,17 +48,28 @@ export async function POST(request) {
     
     // Check if entry exists
     const existing = await query(
-      'SELECT id FROM timetable WHERE day = ? AND period = ? AND classroom = ? AND academic_year_id = ?',
+      'SELECT id, subject_id, teacher_id FROM timetable WHERE day = ? AND period = ? AND classroom = ? AND academic_year_id = ?',
       [day ?? null, period ?? null, classroom ?? null, academicYearId ?? null]
     )
     
     if (existing.length > 0) {
+      // Check if data actually changed
+      const currentSubjectId = existing[0].subject_id ?? null
+      const currentTeacherId = existing[0].teacher_id ?? null
+      const newSubjectId = subjectId ?? null
+      const newTeacherId = teacherId ?? null
+      
+      if (currentSubjectId === newSubjectId && currentTeacherId === newTeacherId) {
+        // No change detected
+        return NextResponse.json({ success: true, changed: false, message: 'ข้อมูลไม่มีการเปลี่ยนแปลง' })
+      }
+      
       // Update existing
       await query(
         'UPDATE timetable SET subject_id = ?, teacher_id = ? WHERE id = ?',
         [subjectId ?? null, teacherId ?? null, existing[0].id]
       )
-      return NextResponse.json({ success: true, message: 'อัพเดตตารางเรียนเรียบร้อย' })
+      return NextResponse.json({ success: true, changed: true, message: 'อัพเดตตารางเรียนเรียบร้อย' })
     } else {
       // Insert new
       const id = crypto.randomUUID()
@@ -66,7 +77,7 @@ export async function POST(request) {
         'INSERT INTO timetable (id, day, period, subject_id, teacher_id, classroom, academic_year_id) VALUES (?, ?, ?, ?, ?, ?, ?)',
         [id, day ?? null, period ?? null, subjectId ?? null, teacherId ?? null, classroom ?? null, academicYearId ?? null]
       )
-      return NextResponse.json({ success: true, id, message: 'บันทึกตารางเรียนเรียบร้อย' })
+      return NextResponse.json({ success: true, changed: true, id, message: 'บันทึกตารางเรียนเรียบร้อย' })
     }
   } catch (error) {
     return NextResponse.json({ error: error.message }, { status: 500 })
