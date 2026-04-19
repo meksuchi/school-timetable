@@ -36,7 +36,7 @@ const PRESET_COLORS = ["#6366f1", "#8b5cf6", "#ec4899", "#f59e0b", "#10b981", "#
 const DEFAULT_ACADEMIC_YEAR = { year: new Date().getFullYear() + 543, semester: 1 }
 
 // =============================================================================
-// SWEETALERT2 HELPERS (Same pattern as expenses/page.js)
+// SWEETALERT2 HELPERS
 // =============================================================================
 
 const getSwal = async () => {
@@ -81,7 +81,7 @@ const getToastPreset = () => {
 }
 
 // =============================================================================
-// MINIMAL CSS (Same glassmorphic pattern as expenses)
+// MINIMAL CSS
 // =============================================================================
 const minimalCss = `
   @keyframes fadeUp {
@@ -121,17 +121,17 @@ const minimalCss = `
   .swal2-ent.swal2-ent-dark  { background:#13132a !important; border:1px solid rgba(255,255,255,.1) !important; }
   .swal2-ent.swal2-ent-light { background:#ffffff !important; border:1px solid rgba(0,0,0,.09) !important; box-shadow:0 16px 60px rgba(0,0,0,.12) !important; }
 
-  .swal2-ent-title       { color:#eeeef8 !important; font-family:'Kanit',sans-serif !important; font-size:clamp(15px,4vw,18px) !important; font-weight:600 !important; }
+  .swal2-ent-title        { color:#eeeef8 !important; font-family:'Kanit',sans-serif !important; font-size:clamp(15px,4vw,18px) !important; font-weight:600 !important; }
   .swal2-ent-title-light { color:#18182e !important; font-family:'Kanit',sans-serif !important; font-size:clamp(15px,4vw,18px) !important; font-weight:600 !important; }
 
-  .swal2-ent-html       { color:#8888aa !important; font-family:'Kanit',sans-serif !important; font-size:clamp(12px,3.5vw,14px) !important; }
+  .swal2-ent-html        { color:#8888aa !important; font-family:'Kanit',sans-serif !important; font-size:clamp(12px,3.5vw,14px) !important; }
   .swal2-ent-html-light { color:#55557a !important; font-family:'Kanit',sans-serif !important; font-size:clamp(12px,3.5vw,14px) !important; }
 
   .swal2-ent-actions { gap:10px !important; flex-wrap:wrap !important; }
   .swal2-ent-confirm { border-radius:9px !important; font-family:'Kanit',sans-serif !important; font-size:clamp(12px,3.5vw,13px) !important; font-weight:600 !important; padding:9px 20px !important; box-shadow:0 4px 14px rgba(99,102,241,.35) !important; }
-  .swal2-ent-cancel       { border-radius:9px !important; font-family:'Kanit',sans-serif !important; font-size:clamp(12px,3.5vw,13px) !important; font-weight:500 !important; padding:9px 20px !important; border:1px solid rgba(255,255,255,.1) !important; color:#8888aa !important; background:rgba(255,255,255,.04) !important; }
+  .swal2-ent-cancel        { border-radius:9px !important; font-family:'Kanit',sans-serif !important; font-size:clamp(12px,3.5vw,13px) !important; font-weight:500 !important; padding:9px 20px !important; border:1px solid rgba(255,255,255,.1) !important; color:#8888aa !important; background:rgba(255,255,255,.04) !important; }
   .swal2-ent-cancel:hover { background:rgba(255,255,255,.08) !important; color:#eeeef8 !important; }
-  .swal2-ent-cancel-light       { border-radius:9px !important; font-family:'Kanit',sans-serif !important; font-size:clamp(12px,3.5vw,13px) !important; font-weight:500 !important; padding:9px 20px !important; border:1px solid rgba(0,0,0,.1) !important; color:#55557a !important; background:rgba(0,0,0,.03) !important; }
+  .swal2-ent-cancel-light        { border-radius:9px !important; font-family:'Kanit',sans-serif !important; font-size:clamp(12px,3.5vw,13px) !important; font-weight:500 !important; padding:9px 20px !important; border:1px solid rgba(0,0,0,.1) !important; color:#55557a !important; background:rgba(0,0,0,.03) !important; }
   .swal2-ent-cancel-light:hover { background:rgba(0,0,0,.07) !important; color:#18182e !important; }
 
   /* success icon */
@@ -182,7 +182,7 @@ const minimalCss = `
 `
 
 // =============================================================================
-// SHARED CLASS STRINGS (Same as expenses/page.js)
+// SHARED CLASS STRINGS
 // =============================================================================
 const thCls =
   "px-3 sm:px-4 py-2.5 text-left text-[10px] font-bold tracking-[.08em] uppercase " +
@@ -416,7 +416,7 @@ function Modal({ open, onClose, title, icon: Icon, children, size = "md" }) {
 // =============================================================================
 function ConfirmModal({ open, onClose, onConfirm, title, message }) {
   const handleConfirm = async () => {
-    await onConfirm();
+    if (onConfirm) await onConfirm();
     onClose();
   };
   
@@ -439,15 +439,15 @@ function ConfirmModal({ open, onClose, onConfirm, title, message }) {
 }
 
 // =============================================================================
-// LOADING OVERLAY
+// LOADING OVERLAY - Full Page Style
 // =============================================================================
 function LoadingOverlay({ show, text = "กำลังโหลด..." }) {
   if (!show) return null;
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-sm">
-      <div className="bg-white dark:bg-[#1a1a2e] rounded-2xl p-6 flex flex-col items-center gap-3 shadow-2xl">
-        <div className="w-10 h-10 rounded-full border-3 border-[#6366f1]/20 border-t-[#6366f1] animate-spin" />
-        <span className="text-[13px] text-[#55557a] dark:text-[#8888aa]">{text}</span>
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-[#f8fafc] dark:bg-[#0a0a10]">
+      <div className="text-center">
+        <div className="w-16 h-16 rounded-full border-2 border-[#6366f1]/30 border-t-[#6366f1] animate-spin mx-auto mb-4" />
+        <p className="text-[14px] text-[#9999b8] dark:text-[#55556a] tracking-widest uppercase">{text}</p>
       </div>
     </div>
   );
@@ -490,31 +490,6 @@ function Badge({ children, color = "#6366f1", type = "default" }) {
 }
 
 // =============================================================================
-// DAY COLOR HELPERS
-// =============================================================================
-const getDayColor = (day) => {
-  const colors = {
-    'จันทร์': 'from-pink-500 to-rose-500',
-    'อังคาร': 'from-orange-500 to-amber-500',
-    'พุธ': 'from-emerald-500 to-green-500',
-    'พฤหัสบดี': 'from-blue-500 to-indigo-500',
-    'ศุกร์': 'from-violet-500 to-purple-500'
-  };
-  return colors[day] || 'from-gray-500 to-gray-600';
-}
-
-const getDayBgColor = (day) => {
-  const colors = {
-    'จันทร์': 'bg-pink-500',
-    'อังคาร': 'bg-orange-500',
-    'พุธ': 'bg-emerald-500',
-    'พฤหัสบดี': 'bg-blue-500',
-    'ศุกร์': 'bg-violet-500'
-  };
-  return colors[day] || 'bg-gray-500';
-}
-
-// =============================================================================
 // MAIN SCHOOL TIMETABLE MANAGEMENT SYSTEM PAGE
 // =============================================================================
 export default function SchoolTimetableSystem() {
@@ -547,11 +522,9 @@ export default function SchoolTimetableSystem() {
   // Timetable builder states
   const [selectedYear, setSelectedYear] = useState('')
   const [selectedClass, setSelectedClass] = useState('')
-  const [timetableGrid, setTimetableGrid] = useState({})
   
   // View states
   const [viewMode, setViewMode] = useState('class') // 'class' or 'teacher'
-  const [viewSelected, setViewSelected] = useState('')
   
   // ─── EFFECTS ───────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -565,7 +538,6 @@ export default function SchoolTimetableSystem() {
         prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
       }
     } catch (e) {
-      // Fallback to light mode if localStorage fails
       prefersDark = false
     }
     
@@ -584,9 +556,11 @@ export default function SchoolTimetableSystem() {
   }, [])
   
   useEffect(() => {
-    document.documentElement.classList.toggle("dark", isDark)
-    localStorage.setItem("theme", isDark ? "dark" : "light")
-  }, [isDark])
+    if (mounted) {
+      document.documentElement.classList.toggle("dark", isDark)
+      localStorage.setItem("theme", isDark ? "dark" : "light")
+    }
+  }, [isDark, mounted])
   
   // Reset form data when editingItem changes
   useEffect(() => {
@@ -594,6 +568,22 @@ export default function SchoolTimetableSystem() {
       setFormData(editingItem || {})
     }
   }, [editingItem, showModal])
+
+  // Safely initialize selected class when subjects load
+  useEffect(() => {
+    const classrooms = [...new Set((subjects || []).map(s => s?.classroom).filter(Boolean))]
+    if (!selectedClass && classrooms.length > 0) {
+      setSelectedClass(classrooms[0])
+    }
+  }, [subjects, selectedClass])
+
+  // Safely initialize selected year when academicYears load
+  useEffect(() => {
+    if (!selectedYear && (academicYears || []).length > 0) {
+      const active = academicYears.find(y => y?.isActive)
+      setSelectedYear(active?.id || academicYears[0]?.id)
+    }
+  }, [academicYears, selectedYear])
   
   // ─── DATA LOADING ──────────────────────────────────────────────────────────
   const loadAllData = async () => {
@@ -645,81 +635,7 @@ export default function SchoolTimetableSystem() {
       setLoading(false)
     }
   }
-  
-  const loadSchoolInfo = async () => {
-    try {
-      const res = await fetch('/api/school-info')
-      const data = await res.json()
-      if (!data.error) setSchoolInfo(data)
-    } catch (error) { console.error('Error loading school info:', error) }
-  }
-  
-  const loadAcademicYears = async () => {
-    try {
-      const res = await fetch('/api/academic-years')
-      const data = await res.json()
-      if (Array.isArray(data)) setAcademicYears(data.map(y => ({
-        id: y.id, year: y.year, semester: y.semester,
-        startDate: y.start_date, endDate: y.end_date, isActive: y.is_active
-      })))
-    } catch (error) { console.error('Error loading academic years:', error) }
-  }
-  
-  const loadAdmins = async () => {
-    try {
-      const res = await fetch('/api/administrators')
-      const data = await res.json()
-      if (Array.isArray(data)) setAdmins(data.map(a => ({
-        id: a.id, title: a.title, firstName: a.first_name, lastName: a.last_name, position: a.position
-      })))
-    } catch (error) { console.error('Error loading admins:', error) }
-  }
-  
-  const loadPeriods = async () => {
-    try {
-      const res = await fetch('/api/periods')
-      const data = await res.json()
-      if (Array.isArray(data)) setPeriods(data.map(p => ({
-        id: p.id, periodNumber: p.period_number, startTime: parseTimeValue(p.start_time),
-        endTime: parseTimeValue(p.end_time), isActive: p.is_active, label: p.label
-      })))
-    } catch (error) { console.error('Error loading periods:', error) }
-  }
-  
-  const loadSubjects = async () => {
-    try {
-      const res = await fetch('/api/subjects')
-      const data = await res.json()
-      if (Array.isArray(data)) setSubjects(data.map(s => ({
-        id: s.id, code: s.code, name: s.name, periodsPerWeek: s.periods_per_week,
-        type: s.type, classroom: s.classroom
-      })))
-    } catch (error) { console.error('Error loading subjects:', error) }
-  }
-  
-  const loadTeachers = async () => {
-    try {
-      const res = await fetch('/api/teachers')
-      const data = await res.json()
-      if (Array.isArray(data)) setTeachers(data.map(t => ({
-        id: t.id, prefix: t.prefix, firstName: t.first_name, lastName: t.last_name, department: t.department
-      })))
-    } catch (error) { console.error('Error loading teachers:', error) }
-  }
-  
-  const loadAssignments = async () => {
-    try {
-      const res = await fetch('/api/assignments')
-      const data = await res.json()
-      if (Array.isArray(data)) setAssignments(data.map(a => ({
-        id: a.id, teacherId: a.teacher_id, subjectId: a.subject_id, classroom: a.classroom,
-        academicYearId: a.academic_year_id, teacherPrefix: a.teacher_prefix,
-        teacherFirstName: a.teacher_first_name, teacherLastName: a.teacher_last_name,
-        subjectCode: a.subject_code, subjectName: a.subject_name
-      })))
-    } catch (error) { console.error('Error loading assignments:', error) }
-  }
-  
+
   const loadTimetable = async () => {
     try {
       const res = await fetch('/api/timetable')
@@ -731,17 +647,6 @@ export default function SchoolTimetableSystem() {
         teacherPrefix: t.teacher_prefix, teacherFirstName: t.teacher_first_name, teacherLastName: t.teacher_last_name
       })))
     } catch (error) { console.error('Error loading timetable:', error) }
-  }
-  
-  const loadActivityLog = async () => {
-    try {
-      const res = await fetch('/api/activity-log')
-      const data = await res.json()
-      if (Array.isArray(data)) setActivityLog(data.map(a => ({
-        id: a.id, action: a.action, user: a.user, detail: a.detail,
-        timestamp: a.timestamp, ipAddress: a.ip_address, device: a.device
-      })))
-    } catch (error) { console.error('Error loading activity log:', error) }
   }
   
   // ─── HELPERS ───────────────────────────────────────────────────────────────
@@ -1068,14 +973,37 @@ export default function SchoolTimetableSystem() {
           {(periods || []).map((period, idx) => (
             <tr key={period?.id || idx} className="hover:bg-black/[.02] dark:hover:bg-white/[.02]">
               <td className="px-4 py-3 text-[13px] text-[#18182e] dark:text-[#eeeef8]">คาบ {period?.periodNumber || idx + 1}</td>
-              <td className="px-4 py-3"><input type="time" value={period?.startTime || ''} onChange={e => { const newPeriods = [...periods]; newPeriods[idx].startTime = e.target.value; setPeriods(newPeriods); }} className={fieldInputCls} /></td>
-              <td className="px-4 py-3"><input type="time" value={period?.endTime || ''} onChange={e => { const newPeriods = [...periods]; newPeriods[idx].endTime = e.target.value; setPeriods(newPeriods); }} className={fieldInputCls} /></td>
-              <td className="px-4 py-3"><input type="checkbox" checked={period?.isActive || false} onChange={e => { const newPeriods = [...periods]; newPeriods[idx].isActive = e.target.checked; setPeriods(newPeriods); }} /></td>
-              <td className="px-4 py-3"><button onClick={() => { const newPeriods = periods.filter((_, i) => i !== idx); setPeriods(newPeriods); }} className="p-1.5 rounded-lg hover:bg-red-500/10 text-red-500"><Trash2 size={14} /></button></td>
+              <td className="px-4 py-3">
+                <input type="time" value={period?.startTime || ''} 
+                  onChange={e => {
+                    const newPeriods = periods.map((p, i) => i === idx ? { ...p, startTime: e.target.value } : p);
+                    setPeriods(newPeriods);
+                  }} className={fieldInputCls} />
+              </td>
+              <td className="px-4 py-3">
+                <input type="time" value={period?.endTime || ''} 
+                  onChange={e => {
+                    const newPeriods = periods.map((p, i) => i === idx ? { ...p, endTime: e.target.value } : p);
+                    setPeriods(newPeriods);
+                  }} className={fieldInputCls} />
+              </td>
+              <td className="px-4 py-3">
+                <input type="checkbox" checked={period?.isActive || false} 
+                  onChange={e => {
+                    const newPeriods = periods.map((p, i) => i === idx ? { ...p, isActive: e.target.checked } : p);
+                    setPeriods(newPeriods);
+                  }} />
+              </td>
+              <td className="px-4 py-3">
+                <button onClick={() => {
+                  const newPeriods = periods.filter((_, i) => i !== idx); 
+                  setPeriods(newPeriods); 
+                }} className="p-1.5 rounded-lg hover:bg-red-500/10 text-red-500"><Trash2 size={14} /></button>
+              </td>
             </tr>
           ))}
         </DataTable>
-        <button onClick={() => setPeriods([...(periods || []), { id: crypto.randomUUID(), periodNumber: (periods || []).length + 1, startTime: '08:00', endTime: '09:00', isActive: true }])} className={`${btnSecondaryCls} mt-4`}><Plus size={14} /> เพิ่มคาบ</button>
+        <button onClick={() => setPeriods([...(periods || []), { id: generateUUID(), periodNumber: (periods || []).length + 1, startTime: '08:00', endTime: '09:00', isActive: true }])} className={`${btnSecondaryCls} mt-4`}><Plus size={14} /> เพิ่มคาบ</button>
       </div>
     )
   }
@@ -1137,18 +1065,23 @@ export default function SchoolTimetableSystem() {
     const activePeriods = (periods || []).filter(p => p?.isActive).sort((a, b) => (a?.periodNumber || 0) - (b?.periodNumber || 0))
     const classrooms = [...new Set((subjects || []).map(s => s?.classroom).filter(Boolean))]
     
-    if (!selectedClass && classrooms.length > 0) setSelectedClass(classrooms[0])
-    if (!selectedYear && (academicYears || []).length > 0) setSelectedYear((academicYears || []).find(y => y?.isActive)?.id || academicYears[0]?.id)
-    
     const getSlot = (day, period) => (timetable || []).find(t => t?.day === day && t?.period === period?.periodNumber && t?.classroom === selectedClass && t?.academicYearId === selectedYear)
     
     const updateSlot = async (day, period, subjectId, teacherId) => {
-      const existing = getSlot(day, period)
-      if (existing) {
-        await fetch('/api/timetable', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ day, period: period.periodNumber, subjectId, teacherId, classroom: selectedClass, academicYearId: selectedYear }) })
-      } else {
-        await fetch('/api/timetable', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ day, period: period.periodNumber, subjectId, teacherId, classroom: selectedClass, academicYearId: selectedYear }) })
-      }
+      // Whether existing or not, send POST to API. 
+      // The API should handle Insert/Update/Delete based on subjectId presence.
+      await fetch('/api/timetable', { 
+        method: 'POST', 
+        headers: { 'Content-Type': 'application/json' }, 
+        body: JSON.stringify({ 
+          day, 
+          period: period.periodNumber, 
+          subjectId, 
+          teacherId, 
+          classroom: selectedClass, 
+          academicYearId: selectedYear 
+        }) 
+      })
       loadTimetable()
     }
     
@@ -1157,14 +1090,14 @@ export default function SchoolTimetableSystem() {
         <div className="flex flex-wrap items-center gap-4 mb-6">
           <div className="flex items-center gap-2">
             <label className="text-[13px] text-[#55557a] dark:text-[#8888aa]">ห้องเรียน:</label>
-            <select value={selectedClass} onChange={e => setSelectedClass(e.target.value)} className={fieldInputCls}>
+            <select value={selectedClass || ''} onChange={e => setSelectedClass(e.target.value)} className={fieldInputCls}>
               {classrooms.length === 0 && <option value="">ไม่มีห้องเรียน</option>}
               {classrooms.map(c => <option key={c} value={c}>{c}</option>)}
             </select>
           </div>
           <div className="flex items-center gap-2">
             <label className="text-[13px] text-[#55557a] dark:text-[#8888aa]">ปีการศึกษา:</label>
-            <select value={selectedYear} onChange={e => setSelectedYear(e.target.value)} className={fieldInputCls}>
+            <select value={selectedYear || ''} onChange={e => setSelectedYear(e.target.value)} className={fieldInputCls}>
               {(academicYears || []).length === 0 && <option value="">ไม่มีปีการศึกษา</option>}
               {(academicYears || []).map(y => <option key={y?.id} value={y?.id}>{y?.year}/{y?.semester}</option>)}
             </select>
@@ -1225,6 +1158,8 @@ export default function SchoolTimetableSystem() {
   
   // ─── MODAL FORMS ─────────────────────────────────────────────────────────────
   const renderModalForm = () => {
+    if (!showModal) return null;
+
     const submitForm = () => {
       const typeMap = { academicYear: 'academicYear', admin: 'admin', subject: 'subject', teacher: 'teacher', assignment: 'assignment' }
       handleSave(typeMap[modalType], formData, !!editingItem)
@@ -1300,12 +1235,21 @@ export default function SchoolTimetableSystem() {
   }
   
   // ─── MAIN RENDER ───────────────────────────────────────────────────────────
-  const isLoading = !mounted || loading
+  if (!mounted) {
+    return (
+      <div className="h-screen w-full bg-[#f8fafc] dark:bg-[#0a0a10] flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 rounded-full border-2 border-[#6366f1]/30 border-t-[#6366f1] animate-spin mx-auto mb-4" />
+          <p className="text-[14px] text-[#9999b8] dark:text-[#55556a] tracking-widest uppercase">กำลังโหลด...</p>
+        </div>
+      </div>
+    )
+  }
   
   return (
     <div className="min-h-screen bg-[#f8fafc] dark:bg-[#0a0a10] transition-colors duration-500 ease-in-out">
       <style>{minimalCss}</style>
-      <LoadingOverlay show={isLoading} />
+      <LoadingOverlay show={loading} />
       
       {/* Mobile Sidebar Overlay */}
       {isMobile && sidebarOpen && (
@@ -1402,7 +1346,7 @@ export default function SchoolTimetableSystem() {
       </main>
       
       {/* Modal Forms */}
-      {showModal && renderModalForm()}
+      {renderModalForm()}
       
       {/* Confirm Delete Modal */}
       <ConfirmModal 
